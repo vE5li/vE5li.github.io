@@ -61,7 +61,9 @@ function addButton(layer, name, x, y, width, height, colored, visible, callback)
 
     text.offsetX(text.width() / 2);
     background.on('mousedown', callback);
+    background.on('tap', callback);
     text.on('mousedown', callback);
+    text.on('tap', callback);
     layer.add(background);
     layer.add(text);
 
@@ -182,7 +184,9 @@ function addToggleButton(layer, name, x, y, on) {
     }
 
     background.on('mousedown', toggleButtonState);
+    background.on('tap', toggleButtonState);
     slider.on('mousedown', toggleButtonState);
+    slider.on('tap', toggleButtonState);
     layer.add(text);
     layer.add(background);
     layer.add(slider);
