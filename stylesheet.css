@@ -1,0 +1,20 @@
+body {
+    background-color: #333333;
+}
+
+textarea {
+    position: absolute;
+    resize: none;
+    border: 0px;
+    font-size: 16px;
+    font-family: 'Sans-serif';
+    color: #333333;
+    font-weight: bold;
+}
+
+#container {
+    position: relative;
+    width: 600px;
+    height: 400px;
+    margin: 0 auto;
+}
