@@ -150,6 +150,7 @@ function addToggleButton(layer, name, x, y, on) {
         }
         moveGradient(newX);
         slider.setX(newX);
+        layer.draw();
     }, layer);
 
     var moveSwitchOff = new Konva.Animation(function(frame) {
@@ -161,6 +162,7 @@ function addToggleButton(layer, name, x, y, on) {
         }
         moveGradient(newX);
         slider.setX(newX);
+        layer.draw();
     }, layer);
 
     function moveGradient(x) {
