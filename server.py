@@ -72,7 +72,7 @@ async def echo(websocket, path):
             print("invalid target " + target)
             await websocket.send("XX")
 
-start_server = websockets.serve(echo, "192.168.0.192", 8765)
+start_server = websockets.serve(echo, port=8765)
 print("server started")
 
 asyncio.get_event_loop().run_until_complete(start_server)

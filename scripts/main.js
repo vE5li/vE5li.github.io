@@ -88,7 +88,7 @@ var sendMessageField = addTextfield(layer, 0, 170, confirmMessageField);
 
 stage.add(layer);
 
-let socket = new WebSocket("ws://192.168.0.192:8765");
+let socket = new WebSocket("ws://[2a02:908:1b12:8360:ad79:dd57:6903:9bfc]:8765");
 
 socket.onopen = function(e) {
     socket.send("0");
