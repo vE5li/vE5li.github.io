@@ -5,9 +5,9 @@ function addButton(layer, name, x, y, width, height, colored, visible, callback)
     const backgroundUpColor = (colored) ? '#63a145' : '#666666';
     const backgroundDownColor = (colored) ? '#red' : 'black';
 
-    const textOffset = 7;
+    const textOffset = 6;
     const fontSize = 18;
-    const fontFamily = 'Sans-serif';
+    const fontFamily = 'Global';
     const textColor = (colored) ? '#333333' : '#333333';
 
     var background = new Konva.Rect({

@@ -1,5 +1,10 @@
+@font-face {
+    font-family: 'Global';
+    src: url('maven.ttf') format('truetype');
+}
+
 body {
-    background-color: #333333;
+    background-color: #222222;
 }
 
 textarea {
@@ -7,14 +12,14 @@ textarea {
     resize: none;
     border: 0px;
     font-size: 16px;
-    font-family: 'Sans-serif';
+    font-family: 'Global';
     color: #333333;
     font-weight: bold;
 }
 
 #container {
     position: relative;
-    width: 900px;
+    width: 800px;
     height: 400px;
     margin: 0 auto;
 }

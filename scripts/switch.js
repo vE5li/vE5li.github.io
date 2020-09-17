@@ -1,10 +1,10 @@
 function addSwitch(layer, name, x, y, callback) {
 
     const fontSize = 19;
-    const fontFamily = 'Sans-serif';
+    const fontFamily = 'Global';
     const textColor = '#808080';
-    const textOffset = 11;
-    const textPadding = 200;
+    const textOffset = 10;
+    const textPadding = 230;
 
     const backgroundWidth = 80;
     const backgroundHeight = 30;
