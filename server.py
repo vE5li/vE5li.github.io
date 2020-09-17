@@ -5,12 +5,12 @@ import websockets
 
 async_state = type('', (), {})()
 async_state.clients = []
-async_state.light_state = True
-async_state.lamp_state = True
-async_state.portal_state = True
-async_state.television_state = True
-async_state.shelf_state = True
-async_state.desk_state = True
+async_state.light_state = False
+async_state.lamp_state = False
+async_state.portal_state = False
+async_state.television_state = False
+async_state.shelf_state = False
+async_state.desk_state = False
 async_state.shelf_color = "ff0000"
 async_state.desk_color = "ff0000"
 

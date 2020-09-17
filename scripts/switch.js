@@ -13,8 +13,8 @@ function addSwitch(layer, name, x, y, callback) {
 
     const gradientWidth = 50;
     const gradientOnStart = backgroundWidth;
-    const gradientOnEnd = backgroundWidth + gradientWidth * 2;
-    const gradientOffStart = -(gradientWidth * 2);
+    const gradientOnEnd = backgroundWidth + gradientWidth;
+    const gradientOffStart = -gradientWidth;
     const gradientOffEnd = 0;
 
     const sliderOffset = 3;
@@ -93,7 +93,7 @@ function addSwitch(layer, name, x, y, callback) {
     function moveGradient(x) {
         const steps = gradientOnEnd / (sliderOnPosition - sliderOffPosition);
         const sliderX = steps * (x - sliderOffPosition);
-        background.fillLinearGradientStartPoint({ x: sliderX - gradientWidth * 2 });
+        background.fillLinearGradientStartPoint({ x: sliderX - gradientWidth });
         background.fillLinearGradientEndPoint({ x: sliderX });
     }
 

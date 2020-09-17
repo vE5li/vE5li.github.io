@@ -2,7 +2,15 @@ function addColorIndicator(layer, x, y, callback) {
 
     const backgroundSize = 30;
     const backgroundOffset = 190;
-    const backgroundColor = "#666666";
+
+    const gradientWidth = 500;
+    const gradientSetStart = backgroundSize;
+    const gradientSetEnd = backgroundSize + gradientWidth;
+    const gradientTransitionStart = -gradientWidth;
+    const gradientTransitionEnd = 0;
+    const transitionSpeed = 2;
+
+    var currentColor = '#666666';
 
     var background = new Konva.Rect({
         x: x + backgroundOffset,
@@ -10,10 +18,9 @@ function addColorIndicator(layer, x, y, callback) {
         width: backgroundSize,
         height: backgroundSize,
         cornerRadius: backgroundSize / 2.0,
-        fill: backgroundColor,
-        //fillLinearGradientStartPoint: { x: gradientOffStart },
-        //fillLinearGradientEndPoint: { x: gradientOffEnd },
-        //fillLinearGradientColorStops: [0, backgroundOnColor, 1, backgroundOffColor],
+        fillLinearGradientStartPoint: { x: gradientSetStart },
+        fillLinearGradientEndPoint: { x: gradientSetEnd },
+        fillLinearGradientColorStops: [0, currentColor, 1, currentColor],
         shadowColor: 'black',
         shadowBlur: 3.0,
         shadowOpacity: 0.35,
@@ -21,9 +28,27 @@ function addColorIndicator(layer, x, y, callback) {
     });
 
     function setColor(color) {
-        background.fill(color);
-        layer.draw();
+        background.fillLinearGradientColorStops([0, color, 1, currentColor]);
+        background.fillLinearGradientStartPoint({ x: gradientTransitionStart });
+        background.fillLinearGradientEndPoint({ x: gradientTransitionEnd });
+        currentColor = color;
+        transition.start();
     }
+
+    var transition = new Konva.Animation(function(frame) {
+        var timeDiff = frame.timeDiff;
+        var currentX = background.fillLinearGradientStartPoint().x;
+
+        var newX = currentX + timeDiff * transitionSpeed;
+        if (newX > gradientSetStart) {
+            newX = gradientSetStart;
+            transition.stop();
+        }
+
+        background.fillLinearGradientStartPoint({ x: newX });
+        background.fillLinearGradientEndPoint({ x: newX + gradientWidth });
+        layer.draw();
+    }, layer);
 
     background.on('mousedown', callback);
     background.on('tap', callback);
