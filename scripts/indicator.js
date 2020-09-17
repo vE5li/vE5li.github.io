@@ -22,6 +22,7 @@ function addColorIndicator(layer, x, y, callback) {
 
     function setColor(color) {
         background.fill(color);
+        layer.draw();
     }
 
     background.on('mousedown', callback);
