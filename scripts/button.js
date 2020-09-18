@@ -42,6 +42,13 @@ function addButton(layer, name, x, y, width, height, colored, callback) {
         text.opacity(opacity);
     }
 
+    function update(opacity, offset) {
+        background.opacity(opacity);
+        text.opacity(opacity);
+        background.offsetY(offset);
+        text.offsetY(offset);
+    }
+
     text.offsetX(text.width() / 2);
     background.on('mousedown', callback);
     background.on('tap', callback);
@@ -54,5 +61,6 @@ function addButton(layer, name, x, y, width, height, colored, callback) {
         background: background,
         text: text,
         opacity: opacity,
+        update: update,
     }
 }

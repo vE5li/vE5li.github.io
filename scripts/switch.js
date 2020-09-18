@@ -1,10 +1,9 @@
-function addSwitch(layer, name, x, y, callback) {
+function addSwitch(layer, name, x, y, padding, callback) {
 
     const fontSize = 19;
     const fontFamily = 'Global';
     const textColor = '#808080';
-    const textOffset = 10;
-    const textPadding = 230;
+    const textOffset = 6;
 
     const backgroundWidth = 80;
     const backgroundHeight = 30;
@@ -19,7 +18,7 @@ function addSwitch(layer, name, x, y, callback) {
 
     const sliderOffset = 3;
     const sliderSize = backgroundHeight - sliderOffset * 2;
-    const sliderOffPosition = x + textPadding + sliderOffset;
+    const sliderOffPosition = x + padding + sliderOffset;
     const sliderOnPosition = sliderOffPosition + backgroundWidth - sliderSize - sliderOffset * 2;
     const sliderColor = "#333333";
     const sliderSpeed = 0.3;
@@ -39,7 +38,7 @@ function addSwitch(layer, name, x, y, callback) {
     });
 
     var background = new Konva.Rect({
-        x: x + textPadding,
+        x: x + padding,
         y: y,
         width: backgroundWidth,
         height: backgroundHeight,
@@ -107,6 +106,15 @@ function addSwitch(layer, name, x, y, callback) {
         }
     }
 
+    function update(opacity, offset) {
+        background.opacity(opacity);
+        background.offsetY(offset);
+        text.opacity(opacity);
+        text.offsetY(offset);
+        slider.opacity(opacity);
+        slider.offsetY(offset);
+    }
+
     background.on('mousedown', callback);
     background.on('tap', callback);
     slider.on('mousedown', callback);
@@ -117,5 +125,6 @@ function addSwitch(layer, name, x, y, callback) {
 
     return {
         setState: setState,
+        update: update,
     }
 }

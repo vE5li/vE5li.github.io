@@ -35,7 +35,6 @@ function addTextfield(layer, x, y, open_callback, close_callback, send_callback)
     textarea.style.backgroundColor = backgroundColor;
     textarea.spellcheck = false;
     textarea.addEventListener("focus", open_callback);
-    textarea.addEventListener("focusout", close_callback);
 
     function clear() {
         var value = (' ' + textarea.value).slice(1);

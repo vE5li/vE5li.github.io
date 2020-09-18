@@ -38,19 +38,20 @@ function addControlLayer(stage) {
     const openHeight = 230;
     const closedHeight = 180;
     const openSpeed = 0.3;
+    const textOffset = 230;
     var selectedIndicator;
 
     var layer = new Konva.Layer();
     var background = addBackground(layer, canvasWidth, closedHeight, "#333333");
-    var lightSwitch = addSwitch(layer, 'light', 70, 20, sendLightState);
-    var lampSwitch = addSwitch(layer, 'lamps', 70, 70, sendLampState);
-    var portalSwitch = addSwitch(layer, 'portal', 70, 120, sendPortalState);
-    var televisionSwitch = addSwitch(layer, 'television', 420, 20, sendTelevisionState);
-    var shelfSwitch = addSwitch(layer, 'shelf', 420, 70, sendShelfState);
-    var deskSwitch = addSwitch(layer, 'desk', 420, 120, sendDeskState);
+    var lightSwitch = addSwitch(layer, 'light', 70, 20, textOffset, sendLightState);
+    var lampSwitch = addSwitch(layer, 'lamps', 70, 70, textOffset, sendLampState);
+    var portalSwitch = addSwitch(layer, 'portal', 70, 120, textOffset, sendPortalState);
+    var televisionSwitch = addSwitch(layer, 'television', 420, 20, textOffset, sendTelevisionState);
+    var shelfSwitch = addSwitch(layer, 'shelf', 420, 70, textOffset, sendShelfState);
+    var deskSwitch = addSwitch(layer, 'desk', 420, 120, textOffset, sendDeskState);
     var shelfColorIndicator = addColorIndicator(layer, 420, 70, openShelfPicker);
     var deskColorIndicator = addColorIndicator(layer, 420, 120, openDeskfPicker);
-    var colorPicker = addColorPicker(layer, 90, 180, 590, closeColorPicker, setColor);
+    var colorPicker = addColorPicker(layer, 70, 180, 660, closeColorPicker, setColor);
 
     function sendLightState() {
         var message = 'L' + character_from_state(!lightSwitch.state);
@@ -86,17 +87,23 @@ function addControlLayer(stage) {
         selectedIndicator = 'S';
         closeColorPicker.stop();
         openColorPicker.start();
+        shelfColorIndicator.focus();
+        deskColorIndicator.unfocus();
     }
 
     function openDeskfPicker() {
         selectedIndicator = 'D';
         closeColorPicker.stop();
         openColorPicker.start();
+        shelfColorIndicator.unfocus();
+        deskColorIndicator.focus();
     }
 
     function closeColorPicker() {
         openColorPicker.stop();
         closeColorPicker.start();
+        shelfColorIndicator.unfocus();
+        deskColorIndicator.unfocus();
     }
 
     function setColor(color) {
@@ -104,6 +111,8 @@ function addControlLayer(stage) {
         socket.send(message);
         openColorPicker.stop();
         closeColorPicker.start();
+        shelfColorIndicator.unfocus();
+        deskColorIndicator.unfocus();
     }
 
     function updateColorPicker(height) {
@@ -163,26 +172,68 @@ function addControlLayer(stage) {
 
 function addMessageLayer(stage) {
 
-    const backgroundHeight = 70;
-    const fadeSpeed = 0.01;
+    const openHeight = 115;
+    const closedHeight = 70;
+    const advancedHeight = 320;
+    const openSpeed = 0.3;
+    const advancedOpenSpeed = 0.8;
+
+    const travel = 45;
+    const buttonsThreshhold = 45;
+    const slider1Threshhold = 100;
+    const slider2Threshhold = 150;
+    const slider3Threshhold = 200;
+    const englishThreshhold = 250;
 
     var layer = new Konva.Layer();
-    var background = addBackground(layer, canvasWidth, backgroundHeight, "#333333");
-    var buttonOpacity = 0;
+    var background = addBackground(layer, canvasWidth, closedHeight, "#333333");
 
-    var cancelMessageButton = addButton(layer, '\u2717', 25, 20, 30, 30, false, cancelMessageField);
-    var confirmMessageButton = addButton(layer, '\u279C', 745, 20, 30, 30, true, confirmMessageField);
     var sendMessageField = addTextfield(layer, 70, 20, openMessageField, closeMessageField, confirmMessageField);
-    updateButtons(buttonOpacity);
+    var cancelMessageButton = addButton(layer, 'cancel', 70, 65, 130, 30, false, cancelMessageField);
+    var confirmMessageButton = addButton(layer, 'confirm', 600, 65, 130, 30, true, confirmMessageField);
+    var advancedSwitch = addSwitch(layer, 'advanced settings', 270, 65, 170, toggleAdvanced);
+    var slider1 = addSwitch(layer, 'slider 1', 70, 120, 230, toggleEnglish);
+    var slider2 = addSwitch(layer, 'slider 2', 70, 170, 230, toggleEnglish);
+    var slider3 = addSwitch(layer, 'slider 3', 70, 220, 230, toggleEnglish);
+    var englishSwitch = addSwitch(layer, 'english', 70, 270, 230, toggleEnglish);
 
-    function updateButtons(opacity) {
-        cancelMessageButton.opacity(opacity);
-        confirmMessageButton.opacity(opacity);
+    updateButtonsMenu(closedHeight);
+
+    function toggleEnglish() {
+        var state = !englishSwitch.state;
+        englishSwitch.state = state;
+        englishSwitch.setState(state);
+    }
+
+    function toggleAdvanced() {
+        var state = !advancedSwitch.state;
+        advancedSwitch.state = state;
+        advancedSwitch.setState(state);
+
+        if (state) {
+            closeButtonsMenu.stop();
+            openButtonsMenu.stop();
+            closeAdvancedMenu.stop();
+            openAdvancedMenu.start()
+        } else {
+            closeButtonsMenu.stop();
+            openButtonsMenu.stop();
+            openAdvancedMenu.stop()
+            closeAdvancedMenu.start();
+        }
+    }
+
+    function updateButtons(opacity, offset) {
+        cancelMessageButton.update(opacity, offset);
+        confirmMessageButton.update(opacity, offset);
+        advancedSwitch.update(opacity, offset);
     }
 
     function openMessageField() {
-        fadeButtonsOut.stop();
-        fadeButtonsIn.start();
+        openAdvancedMenu.stop();
+        closeAdvancedMenu.stop();
+        closeButtonsMenu.stop();
+        openButtonsMenu.start();
     }
 
     function cancelMessageField() {
@@ -191,8 +242,10 @@ function addMessageLayer(stage) {
     }
 
     function closeMessageField() {
-        fadeButtonsIn.stop();
-        fadeButtonsOut.start();
+        openAdvancedMenu.stop();
+        closeAdvancedMenu.stop();
+        openButtonsMenu.stop();
+        closeButtonsMenu.start();
     }
 
     function confirmMessageField() {
@@ -210,35 +263,91 @@ function addMessageLayer(stage) {
     function offset(offset) {
         layer.y(offset);
         sendMessageField.offset(offset);
-        return backgroundHeight + 10;
+        return background.height() + 10;
     }
 
-    var fadeButtonsIn = new Konva.Animation(function(frame) {
-        var timeDiff = frame.timeDiff;
-        var newOpacity = buttonOpacity + timeDiff * fadeSpeed;
+    function updateThreshhold(updateFunction, threshhold, scaling, delta) {
+        if (delta <= threshhold) {
+            var offsetDelta = delta - threshhold + travel;
+            if (offsetDelta >= 0) {
+                const steps = 1.0 / travel;
+                const opacity = steps * offsetDelta;
+                const offset = (travel - offsetDelta) / scaling;
+                updateFunction(opacity, offset);
+            } else {
+                updateFunction(0, 0);
+            }
+        } else {
+            updateFunction(1, 0);
+        }
+    }
 
-        if (newOpacity > 1) {
-            newOpacity = 1;
-            fadeButtonsIn.stop();
+    function updateButtonsMenu(height) {
+        var delta = height - closedHeight;
+        updateThreshhold(updateButtons, buttonsThreshhold, 4, delta);
+        updateThreshhold(slider1.update, slider1Threshhold, 6, delta);
+        updateThreshhold(slider2.update, slider2Threshhold, 6, delta);
+        updateThreshhold(slider3.update, slider3Threshhold, 6, delta);
+        updateThreshhold(englishSwitch.update, englishThreshhold, 6, delta);
+    }
+
+    var openButtonsMenu = new Konva.Animation(function(frame) {
+        var timeDiff = frame.timeDiff;
+        var destinationHeight = (advancedSwitch.state) ? advancedHeight : openHeight;
+        var speed = (advancedSwitch.state) ? advancedOpenSpeed : openSpeed;
+        var newHeight = background.height() + timeDiff * speed;
+
+        if (newHeight > destinationHeight) {
+            newHeight = destinationHeight;
+            openButtonsMenu.stop();
         }
 
-        updateButtons(newOpacity);
-        buttonOpacity = newOpacity;
-        layer.draw();
+        updateButtonsMenu(newHeight);
+        background.height(newHeight);
+        offsetLayers();
     }, layer);
 
-    var fadeButtonsOut = new Konva.Animation(function(frame) {
+    var closeButtonsMenu = new Konva.Animation(function(frame) {
         var timeDiff = frame.timeDiff;
-        var newOpacity = buttonOpacity - timeDiff * fadeSpeed;
+        var speed = (advancedSwitch.state) ? advancedOpenSpeed : openSpeed;
+        var newHeight = background.height() - timeDiff * speed;
 
-        if (newOpacity < 0) {
-            newOpacity = 0;
-            fadeButtonsOut.stop();
+        if (newHeight < closedHeight) {
+            newHeight = closedHeight;
+            closeButtonsMenu.stop();
         }
 
-        updateButtons(newOpacity);
-        buttonOpacity = newOpacity;
-        layer.draw();
+        updateButtonsMenu(newHeight);
+        background.height(newHeight);
+        offsetLayers();
+    }, layer);
+
+    var openAdvancedMenu = new Konva.Animation(function(frame) {
+        var timeDiff = frame.timeDiff;
+        var newHeight = background.height() + timeDiff * advancedOpenSpeed;
+
+        if (newHeight > advancedHeight) {
+            newHeight = advancedHeight;
+            openAdvancedMenu.stop();
+        }
+
+        updateButtonsMenu(newHeight);
+        background.height(newHeight);
+        offsetLayers();
+    }, layer);
+
+    var closeAdvancedMenu = new Konva.Animation(function(frame) {
+        var timeDiff = frame.timeDiff;
+        var newHeight = background.height() - timeDiff * advancedOpenSpeed;
+
+        if (newHeight < openHeight) {
+            newHeight = openHeight;
+            closeAdvancedMenu.stop();
+        }
+
+        updateButtonsMenu(newHeight);
+        background.height(newHeight);
+        offsetLayers();
     }, layer);
 
     stage.add(layer);
