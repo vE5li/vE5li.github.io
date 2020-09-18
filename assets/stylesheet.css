@@ -5,21 +5,29 @@
 
 body {
     background-color: #222222;
+    margin: 0px;
 }
 
 textarea {
     position: absolute;
     resize: none;
-    border: 0px;
-    font-size: 16px;
+    border: none;
+    font-size: 17px;
     font-family: 'Global';
-    color: #333333;
     font-weight: bold;
+    color: #888888;
+
+
+    overflow: auto;
+    outline: none;
+    -webkit-box-shadow: none;
+    -moz-box-shadow: none;
+    box-shadow: none;
 }
 
 #container {
     position: relative;
     width: 800px;
-    height: 400px;
+    height: 800px;
     margin: 0 auto;
 }

@@ -8,6 +8,7 @@ function addBackground(layer, width, height, color) {
         x: offset,
         width: width - offset * 2,
         height: height,
+        cornerRadius: 7,
         fill: color,
         shadowColor: 'black',
         shadowBlur: 7.0,

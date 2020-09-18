@@ -4,15 +4,16 @@ import asyncio
 import websockets
 
 async_state = type('', (), {})()
-async_state.clients = []
 async_state.light_state = False
 async_state.lamp_state = False
 async_state.portal_state = False
 async_state.television_state = False
 async_state.shelf_state = False
 async_state.desk_state = False
-async_state.shelf_color = "ff0000"
-async_state.desk_color = "ff0000"
+async_state.shelf_color = "ffffff"
+async_state.desk_color = "ffffff"
+
+clients = []
 
 def state_from_character(character):
     return character == '1'
@@ -22,23 +23,23 @@ def character_from_state(state):
 
 async def update_switch_states(state, character):
     message = character + character_from_state(state)
-    for client in async_state.clients:
+    for client in clients:
         await client.send(message)
 
 async def update_indicator_color(color, character):
     message = character + color
-    for client in async_state.clients:
+    for client in clients:
         await client.send(message)
 
 async def register_client(client):
-    async_state.clients.append(client)
+    clients.append(client)
     print("client connected")
-    print("client count " + str(len(async_state.clients)))
+    print("client count " + str(len(clients)))
 
 async def unregister_client(socket):
-    async_state.clients.remove(socket)
+    clients.remove(socket)
     print("client disconnected")
-    print("client count " + str(len(async_state.clients)))
+    print("client count " + str(len(clients)))
 
 async def echo(websocket, path):
     await register_client(websocket)

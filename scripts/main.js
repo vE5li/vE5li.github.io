@@ -6,33 +6,32 @@ function state_from_character(character) {
     return character == '1';
 }
 
-//function openMessageField() {
-//    sendMessageField.open('');
-//    cancelMessageButton.show();
-//    confirmMessageButton.show();
-//    layer.draw();
-//}
-//
-//function cancelMessageField() {
-//    sendMessageField.close();
-//    cancelMessageButton.hide();
-//    confirmMessageButton.hide();
-//    layer.draw();
-//}
-//
-//function confirmMessageField() {
-//    var message = sendMessageField.close();
-//    sendMessage(message);
-//    cancelMessageButton.hide();
-//    confirmMessageButton.hide();
-//    layer.draw();
-//}
-//
-//function sendMessage(message) {
-//    if (message.length > 0) { // FIX ME
-//        socket.send('m' + message);
-//    }
-//}
+function offsetLayers() {
+    var offset = 20;
+    for (let layer of layers) {
+        offset += layer.offset(offset);
+    }
+    stage.draw();
+}
+
+function addBannerLayer(stage) {
+
+    const backgroundHeight = 180;
+
+    var layer = new Konva.Layer();
+    var background = addBackground(layer, canvasWidth, backgroundHeight, "#333333");
+
+    function offset(offset) {
+        layer.y(offset);
+        return backgroundHeight + 10;
+    }
+
+    stage.add(layer);
+
+    return {
+        offset: offset,
+    }
+}
 
 function addControlLayer(stage) {
 
@@ -42,7 +41,7 @@ function addControlLayer(stage) {
     var selectedIndicator;
 
     var layer = new Konva.Layer();
-    var background = addBackground(layer, canvasWidth, 180, "#333333");
+    var background = addBackground(layer, canvasWidth, closedHeight, "#333333");
     var lightSwitch = addSwitch(layer, 'light', 70, 20, sendLightState);
     var lampSwitch = addSwitch(layer, 'lamps', 70, 70, sendLampState);
     var portalSwitch = addSwitch(layer, 'portal', 70, 120, sendPortalState);
@@ -51,35 +50,35 @@ function addControlLayer(stage) {
     var deskSwitch = addSwitch(layer, 'desk', 420, 120, sendDeskState);
     var shelfColorIndicator = addColorIndicator(layer, 420, 70, openShelfPicker);
     var deskColorIndicator = addColorIndicator(layer, 420, 120, openDeskfPicker);
-    var colorPicker = addColorPicker(layer, 70, 180, 630, closeColorPicker, setColor);
+    var colorPicker = addColorPicker(layer, 90, 180, 590, closeColorPicker, setColor);
 
     function sendLightState() {
-        var message = 'L' + character_from_state(!layer1.lightSwitch.state);
+        var message = 'L' + character_from_state(!lightSwitch.state);
         socket.send(message);
     }
 
     function sendLampState() {
-        var message = 'l' + character_from_state(!layer1.lampSwitch.state);
+        var message = 'l' + character_from_state(!lampSwitch.state);
         socket.send(message);
     }
 
     function sendPortalState() {
-        var message = 'p' + character_from_state(!layer1.portalSwitch.state);
+        var message = 'p' + character_from_state(!portalSwitch.state);
         socket.send(message);
     }
 
     function sendTelevisionState() {
-        var message = 't' + character_from_state(!layer1.televisionSwitch.state);
+        var message = 't' + character_from_state(!televisionSwitch.state);
         socket.send(message);
     }
 
     function sendShelfState() {
-        var message = 's' + character_from_state(!layer1.shelfSwitch.state);
+        var message = 's' + character_from_state(!shelfSwitch.state);
         socket.send(message);
     }
 
     function sendDeskState() {
-        var message = 'd' + character_from_state(!layer1.deskSwitch.state);
+        var message = 'd' + character_from_state(!deskSwitch.state);
         socket.send(message);
     }
 
@@ -125,7 +124,7 @@ function addControlLayer(stage) {
 
         updateColorPicker(newHeight);
         background.height(newHeight);
-        layer.draw();
+        offsetLayers();
     }, layer);
 
     var closeColorPicker = new Konva.Animation(function(frame) {
@@ -139,12 +138,18 @@ function addControlLayer(stage) {
 
         updateColorPicker(newHeight);
         background.height(newHeight);
-        layer.draw();
+        offsetLayers();
     }, layer);
+
+    function offset(offset) {
+        layer.y(offset);
+        return background.height() + 10;
+    }
 
     stage.add(layer);
 
     return {
+        offset: offset,
         lightSwitch: lightSwitch,
         lampSwitch: lampSwitch,
         portalSwitch: portalSwitch,
@@ -156,20 +161,107 @@ function addControlLayer(stage) {
     };
 }
 
-//var sendMessageButton = addButton(layer, 'send a message', 0, 210, 600, 30, true, true, openMessageField);
-//var cancelMessageButton = addButton(layer, 'cancel', 0, 250, 295, 30, false, false, cancelMessageField);
-//var confirmMessageButton = addButton(layer, 'confirm', 305, 250, 295, 30, true, false, confirmMessageField);
-//var sendMessageField = addTextfield(layer, 0, 210, confirmMessageField);
+function addMessageLayer(stage) {
+
+    const backgroundHeight = 70;
+    const fadeSpeed = 0.01;
+
+    var layer = new Konva.Layer();
+    var background = addBackground(layer, canvasWidth, backgroundHeight, "#333333");
+    var buttonOpacity = 0;
+
+    var cancelMessageButton = addButton(layer, '\u2717', 25, 20, 30, 30, false, cancelMessageField);
+    var confirmMessageButton = addButton(layer, '\u279C', 745, 20, 30, 30, true, confirmMessageField);
+    var sendMessageField = addTextfield(layer, 70, 20, openMessageField, closeMessageField, confirmMessageField);
+    updateButtons(buttonOpacity);
+
+    function updateButtons(opacity) {
+        cancelMessageButton.opacity(opacity);
+        confirmMessageButton.opacity(opacity);
+    }
+
+    function openMessageField() {
+        fadeButtonsOut.stop();
+        fadeButtonsIn.start();
+    }
+
+    function cancelMessageField() {
+        sendMessageField.clear();
+        closeMessageField();
+    }
+
+    function closeMessageField() {
+        fadeButtonsIn.stop();
+        fadeButtonsOut.start();
+    }
+
+    function confirmMessageField() {
+        var message = sendMessageField.clear();
+        sendMessage(message);
+        closeMessageField();
+    }
+
+    function sendMessage(message) {
+        if (message.length > 0) { // FIX ME
+            socket.send('m' + message);
+        }
+    }
+
+    function offset(offset) {
+        layer.y(offset);
+        sendMessageField.offset(offset);
+        return backgroundHeight + 10;
+    }
+
+    var fadeButtonsIn = new Konva.Animation(function(frame) {
+        var timeDiff = frame.timeDiff;
+        var newOpacity = buttonOpacity + timeDiff * fadeSpeed;
+
+        if (newOpacity > 1) {
+            newOpacity = 1;
+            fadeButtonsIn.stop();
+        }
+
+        updateButtons(newOpacity);
+        buttonOpacity = newOpacity;
+        layer.draw();
+    }, layer);
+
+    var fadeButtonsOut = new Konva.Animation(function(frame) {
+        var timeDiff = frame.timeDiff;
+        var newOpacity = buttonOpacity - timeDiff * fadeSpeed;
+
+        if (newOpacity < 0) {
+            newOpacity = 0;
+            fadeButtonsOut.stop();
+        }
+
+        updateButtons(newOpacity);
+        buttonOpacity = newOpacity;
+        layer.draw();
+    }, layer);
+
+    stage.add(layer);
+
+    return {
+        offset: offset,
+    }
+}
 
 var canvasWidth = 800;
-var canvasHeight = 400;
+var canvasHeight = 800;
 var stage = new Konva.Stage({
     container: "container",
     width: canvasWidth,
     height: canvasHeight
 });
 
-var layer1 = addControlLayer(stage);
+//var bannerLayer = addBannerLayer(stage);
+var controlLayer = addControlLayer(stage);
+var messageLayer = addMessageLayer(stage);
+var layers = [controlLayer, messageLayer];
+offsetLayers(layers);
+
 let socket = new WebSocket("ws://[2a02:908:1b12:8360:ad79:dd57:6903:9bfc]:8765");
 
 socket.onopen = function(e) {
@@ -181,72 +273,72 @@ socket.onmessage = function(event) {
 
     if (target == '0') {
         var state = state_from_character(event.data[1]);
-        layer1.lightSwitch.state = state;
-        layer1.lightSwitch.setState(state);
+        controlLayer.lightSwitch.state = state;
+        controlLayer.lightSwitch.setState(state);
 
         var state = state_from_character(event.data[2]);
-        layer1.lampSwitch.state = state;
-        layer1.lampSwitch.setState(state);
+        controlLayer.lampSwitch.state = state;
+        controlLayer.lampSwitch.setState(state);
 
         var state = state_from_character(event.data[3]);
-        layer1.portalSwitch.state = state;
-        layer1.portalSwitch.setState(state);
+        controlLayer.portalSwitch.state = state;
+        controlLayer.portalSwitch.setState(state);
 
         var state = state_from_character(event.data[4]);
-        layer1.televisionSwitch.state = state;
-        layer1.televisionSwitch.setState(state);
+        controlLayer.televisionSwitch.state = state;
+        controlLayer.televisionSwitch.setState(state);
 
         var state = state_from_character(event.data[5]);
-        layer1.shelfSwitch.state = state;
-        layer1.shelfSwitch.setState(state);
+        controlLayer.shelfSwitch.state = state;
+        controlLayer.shelfSwitch.setState(state);
 
         var state = state_from_character(event.data[6]);
-        layer1.deskSwitch.state = state;
-        layer1.deskSwitch.setState(state);
+        controlLayer.deskSwitch.state = state;
+        controlLayer.deskSwitch.setState(state);
 
         var color = event.data.substring(7, 13);
-        layer1.shelfColorIndicator.setColor('#' + color);
+        controlLayer.shelfColorIndicator.setColor('#' + color);
 
         var color = event.data.substring(13, 19);
-        layer1.deskColorIndicator.setColor('#' + color);
+        controlLayer.deskColorIndicator.setColor('#' + color);
 
     } else if (target == 'L') {
         var state = state_from_character(event.data[1]);
-        layer1.lightSwitch.state = state;
-        layer1.lightSwitch.setState(state);
+        controlLayer.lightSwitch.state = state;
+        controlLayer.lightSwitch.setState(state);
 
     } else if (target == 'l') {
         var state = state_from_character(event.data[1]);
-        layer1.lampSwitch.state = state;
-        layer1.lampSwitch.setState(state);
+        controlLayer.lampSwitch.state = state;
+        controlLayer.lampSwitch.setState(state);
 
     } else if (target == 'p') {
         var state = state_from_character(event.data[1]);
-        layer1.portalSwitch.state = state;
-        layer1.portalSwitch.setState(state);
+        controlLayer.portalSwitch.state = state;
+        controlLayer.portalSwitch.setState(state);
 
     } else if (target == 't') {
         var state = state_from_character(event.data[1]);
-        layer1.televisionSwitch.state = state;
-        layer1.televisionSwitch.setState(state);
+        controlLayer.televisionSwitch.state = state;
+        controlLayer.televisionSwitch.setState(state);
 
     } else if (target == 's') {
         var state = state_from_character(event.data[1]);
-        layer1.shelfSwitch.state = state;
-        layer1.shelfSwitch.setState(state);
+        controlLayer.shelfSwitch.state = state;
+        controlLayer.shelfSwitch.setState(state);
 
     } else if (target == 'd') {
         var state = state_from_character(event.data[1]);
-        layer1.deskSwitch.state = state;
-        layer1.deskSwitch.setState(state);
+        controlLayer.deskSwitch.state = state;
+        controlLayer.deskSwitch.setState(state);
 
     } else if (target == 'S') {
         var color = event.data.substring(1);
-        layer1.shelfColorIndicator.setColor('#' + color);
+        controlLayer.shelfColorIndicator.setColor('#' + color);
 
     } else if (target == 'D') {
         var color = event.data.substring(1);
-        layer1.deskColorIndicator.setColor('#' + color);
+        controlLayer.deskColorIndicator.setColor('#' + color);
 
     } else {
         alert(`invalid target ${event.data}`);

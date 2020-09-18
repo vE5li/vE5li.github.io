@@ -1,4 +1,4 @@
-function addButton(layer, name, x, y, width, height, colored, visible, callback) {
+function addButton(layer, name, x, y, width, height, colored, callback) {
 
     const backgroundWidth = width;
     const backgroundHeight = height;
@@ -21,7 +21,6 @@ function addButton(layer, name, x, y, width, height, colored, visible, callback)
         shadowBlur: 3.0,
         shadowOpacity: 0.35,
         shadowOffset: { x: 4, y: 4 },
-        visible: visible,
     });
 
     var text = new Konva.Text({
@@ -36,17 +35,11 @@ function addButton(layer, name, x, y, width, height, colored, visible, callback)
         shadowBlur: 0.5,
         shadowOpacity: 0.2,
         shadowOffset: { x: 1.35, y: 1.35 },
-        visible: visible,
     });
 
-    function hide() {
-        background.visible(false);
-        text.visible(false);
-    }
-
-    function show() {
-        background.visible(true);
-        text.visible(true);
+    function opacity(opacity) {
+        background.opacity(opacity);
+        text.opacity(opacity);
     }
 
     text.offsetX(text.width() / 2);
@@ -58,7 +51,8 @@ function addButton(layer, name, x, y, width, height, colored, visible, callback)
     layer.add(text);
 
     return {
-        hide: hide,
-        show: show,
+        background: background,
+        text: text,
+        opacity: opacity,
     }
 }
