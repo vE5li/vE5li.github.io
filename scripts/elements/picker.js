@@ -6,11 +6,11 @@ function addColorPicker(layer, x, y, width, close_callback, confirm_callback) {
 
     const colors = ['#ffffff', '#ff8c00', '#f2ff00', '#95ff00', '#04ff00', '#00ff80', '#00fbff', '#0022ff', '#bf00ff', '#ee00ff', '#ff004c', '#ff0000'];
     const step = (width - backButtonWidth) / colors.length;
+    const visibleThreshhold = 0.05;
 
     var offset = x + backButtonWidth + step - buttonRadius;
     var colorButtons = [];
     var closeButton = addButton(layer, 'cancel', x, y, backButtonWidth, buttonSize, false, close_callback);
-    closeButton.opacity(0);
 
     for (let color of colors) {
         var button = new Konva.Rect({
@@ -21,7 +21,6 @@ function addColorPicker(layer, x, y, width, close_callback, confirm_callback) {
             height: buttonSize,
             cornerRadius: buttonSize / 2.0,
             fill: color,
-            opacity: 0,
             shadowColor: 'black',
             shadowBlur: 3.0,
             shadowOpacity: 0.35,
@@ -45,8 +44,11 @@ function addColorPicker(layer, x, y, width, close_callback, confirm_callback) {
         for (let button of colorButtons) {
             button.opacity(opacity);
             button.offsetY(offset);
+            button.visible(opacity > visibleThreshhold);
         }
     }
+
+    update(0, 0);
 
     for (let button of colorButtons) {
         layer.add(button);

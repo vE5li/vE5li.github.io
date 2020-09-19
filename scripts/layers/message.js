@@ -2,16 +2,16 @@ function addMessageLayer(stage, socket, offsetLayers) {
 
     const openHeight = 115;
     const closedHeight = 70;
-    const advancedHeight = 320;
+    const advancedHeight = 330;
     const openSpeed = 0.3;
     const advancedOpenSpeed = 0.8;
 
     const travel = 45;
     const buttonsThreshhold = 45;
-    const slider1Threshhold = 100;
-    const slider2Threshhold = 150;
-    const slider3Threshhold = 200;
-    const englishThreshhold = 250;
+    const amplitudeThreshhold = 110;
+    const pitchThreshhold = 160;
+    const speedThreshhold = 210;
+    const englishThreshhold = 260;
 
     var layer = new Konva.Layer();
     var background = addBackground(layer, canvasWidth, closedHeight, "#333333");
@@ -20,10 +20,10 @@ function addMessageLayer(stage, socket, offsetLayers) {
     var cancelMessageButton = addButton(layer, 'cancel', 70, 65, 130, 30, false, cancelMessageField);
     var confirmMessageButton = addButton(layer, 'confirm', 600, 65, 130, 30, true, confirmMessageField);
     var advancedSwitch = addSwitch(layer, 'advanced settings', 270, 65, 170, toggleAdvanced);
-    var slider1 = addSwitch(layer, 'slider 1', 70, 120, 230, toggleEnglish);
-    var slider2 = addSwitch(layer, 'slider 2', 70, 170, 230, toggleEnglish);
-    var slider3 = addSwitch(layer, 'slider 3', 70, 220, 230, toggleEnglish);
-    var englishSwitch = addSwitch(layer, 'english', 70, 270, 230, toggleEnglish);
+    var amplitudeSlider = addSwitch(layer, 'amplitude', 70, 130, 230, toggleEnglish);
+    var pitchSlider = addSwitch(layer, 'pitch', 70, 180, 230, toggleEnglish);
+    var speedSlider = addSwitch(layer, 'speed', 70, 230, 230, toggleEnglish);
+    var englishSwitch = addSwitch(layer, 'english', 70, 280, 230, toggleEnglish);
 
     updateButtonsMenu(closedHeight);
 
@@ -113,9 +113,9 @@ function addMessageLayer(stage, socket, offsetLayers) {
     function updateButtonsMenu(height) {
         var delta = height - closedHeight;
         updateThreshhold(updateButtons, buttonsThreshhold, 4, delta);
-        updateThreshhold(slider1.update, slider1Threshhold, 6, delta);
-        updateThreshhold(slider2.update, slider2Threshhold, 6, delta);
-        updateThreshhold(slider3.update, slider3Threshhold, 6, delta);
+        updateThreshhold(amplitudeSlider.update, amplitudeThreshhold, 6, delta);
+        updateThreshhold(pitchSlider.update, pitchThreshhold, 6, delta);
+        updateThreshhold(speedSlider.update, speedThreshhold, 6, delta);
         updateThreshhold(englishSwitch.update, englishThreshhold, 6, delta);
     }
 

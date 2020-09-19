@@ -23,6 +23,8 @@ function addSwitch(layer, name, x, y, padding, callback) {
     const sliderColor = "#333333";
     const sliderSpeed = 0.3;
 
+    const visibleThreshhold = 0.05;
+
     var text = new Konva.Text({
         x: x,
         y: y + textOffset,
@@ -113,6 +115,9 @@ function addSwitch(layer, name, x, y, padding, callback) {
         text.offsetY(offset);
         slider.opacity(opacity);
         slider.offsetY(offset);
+        background.visible(opacity > visibleThreshhold);
+        text.visible(opacity > visibleThreshhold);
+        slider.visible(opacity > visibleThreshhold);
     }
 
     background.on('mousedown', callback);

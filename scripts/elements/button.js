@@ -10,6 +10,8 @@ function addButton(layer, name, x, y, width, height, colored, callback) {
     const fontFamily = 'Global';
     const textColor = (colored) ? '#333333' : '#333333';
 
+    const visibleThreshhold = 0.05;
+
     var background = new Konva.Rect({
         x: x,
         y: y,
@@ -44,9 +46,11 @@ function addButton(layer, name, x, y, width, height, colored, callback) {
 
     function update(opacity, offset) {
         background.opacity(opacity);
-        text.opacity(opacity);
         background.offsetY(offset);
+        text.opacity(opacity);
         text.offsetY(offset);
+        background.visible(opacity > visibleThreshhold);
+        text.visible(opacity > visibleThreshhold);
     }
 
     text.offsetX(text.width() / 2);
