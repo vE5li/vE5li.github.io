@@ -39,17 +39,12 @@ function addButton(layer, name, x, y, width, height, colored, callback) {
         shadowOffset: { x: 1.35, y: 1.35 },
     });
 
-    function opacity(opacity) {
-        background.opacity(opacity);
-        text.opacity(opacity);
-    }
-
     function update(opacity, offset) {
         background.opacity(opacity);
         background.offsetY(offset);
+        background.visible(opacity > visibleThreshhold);
         text.opacity(opacity);
         text.offsetY(offset);
-        background.visible(opacity > visibleThreshhold);
         text.visible(opacity > visibleThreshhold);
     }
 
@@ -64,7 +59,6 @@ function addButton(layer, name, x, y, width, height, colored, callback) {
     return {
         background: background,
         text: text,
-        opacity: opacity,
         update: update,
     }
 }

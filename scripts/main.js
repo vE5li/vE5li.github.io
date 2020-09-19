@@ -52,16 +52,19 @@ socket.onmessage = function(event) {
         var state = state_from_character(event.data[5]);
         controlLayer.shelfSwitch.state = state;
         controlLayer.shelfSwitch.setState(state);
+        controlLayer.updateShelfSwitch(state);
 
         var state = state_from_character(event.data[6]);
         controlLayer.deskSwitch.state = state;
         controlLayer.deskSwitch.setState(state);
+        controlLayer.updateDeskSwitch(state);
 
         var color = event.data.substring(7, 13);
         controlLayer.shelfColorIndicator.setColor('#' + color);
 
         var color = event.data.substring(13, 19);
         controlLayer.deskColorIndicator.setColor('#' + color);
+
 
     } else if (target == 'L') {
         var state = state_from_character(event.data[1]);
@@ -87,11 +90,13 @@ socket.onmessage = function(event) {
         var state = state_from_character(event.data[1]);
         controlLayer.shelfSwitch.state = state;
         controlLayer.shelfSwitch.setState(state);
+        controlLayer.updateShelfSwitch(state);
 
     } else if (target == 'd') {
         var state = state_from_character(event.data[1]);
         controlLayer.deskSwitch.state = state;
         controlLayer.deskSwitch.setState(state);
+        controlLayer.updateDeskSwitch(state);
 
     } else if (target == 'S') {
         var color = event.data.substring(1);

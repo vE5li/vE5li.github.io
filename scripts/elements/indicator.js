@@ -16,9 +16,10 @@ function addColorIndicator(layer, x, y, callback) {
     const textColor = '#333333';
 
     const fadeSpeed = 0.01;
+    const showSpeed = 0.01;
+    const visibleThreshhold = 0.05;
 
     var currentColor = '#666666';
-    var markerOpacity = 0;
 
     var background = new Konva.Rect({
         x: x + backgroundOffset,
@@ -33,6 +34,7 @@ function addColorIndicator(layer, x, y, callback) {
         shadowBlur: 3.0,
         shadowOpacity: 0.35,
         shadowOffset: { x: 4, y: 4 },
+        opacity: 0,
     });
 
     var text = new Konva.Text({
@@ -43,7 +45,7 @@ function addColorIndicator(layer, x, y, callback) {
         fontFamily: fontFamily,
         fontStyle: 'bold',
         fill: textColor,
-        opacity: markerOpacity,
+        opacity: 0,
     });
 
     function setColor(color) {
@@ -52,6 +54,16 @@ function addColorIndicator(layer, x, y, callback) {
         background.fillLinearGradientEndPoint({ x: gradientTransitionEnd });
         currentColor = color;
         transition.start();
+    }
+
+    function focus() {
+        fadeMarkerOut.stop();
+        fadeMarkerIn.start();
+    }
+
+    function unfocus() {
+        fadeMarkerIn.stop();
+        fadeMarkerOut.start();
     }
 
     var transition = new Konva.Animation(function(frame) {
@@ -71,7 +83,7 @@ function addColorIndicator(layer, x, y, callback) {
 
     var fadeMarkerIn = new Konva.Animation(function(frame) {
         var timeDiff = frame.timeDiff;
-        var newOpacity = markerOpacity + timeDiff * fadeSpeed;
+        var newOpacity = text.opacity() + timeDiff * fadeSpeed;
 
         if (newOpacity > 1) {
             newOpacity = 1;
@@ -79,13 +91,12 @@ function addColorIndicator(layer, x, y, callback) {
         }
 
         text.opacity(newOpacity);
-        markerOpacity = newOpacity;
         layer.draw();
     }, layer);
 
     var fadeMarkerOut = new Konva.Animation(function(frame) {
         var timeDiff = frame.timeDiff;
-        var newOpacity = markerOpacity - timeDiff * fadeSpeed;
+        var newOpacity = text.opacity() - timeDiff * fadeSpeed;
 
         if (newOpacity < 0) {
             newOpacity = 0;
@@ -93,18 +104,46 @@ function addColorIndicator(layer, x, y, callback) {
         }
 
         text.opacity(newOpacity);
-        markerOpacity = newOpacity;
         layer.draw();
     }, layer);
 
-    function focus() {
-        fadeMarkerOut.stop();
-        fadeMarkerIn.start();
+    var showIndicator = new Konva.Animation(function(frame) {
+        var timeDiff = frame.timeDiff;
+        var newOpacity = background.opacity() + timeDiff * showSpeed;
+
+        if (newOpacity > 1) {
+            newOpacity = 1;
+            showIndicator.stop();
+        }
+
+        background.opacity(newOpacity);
+        background.visible(newOpacity > visibleThreshhold);
+        layer.draw();
+    }, layer);
+
+    var hideIndicator = new Konva.Animation(function(frame) {
+        var timeDiff = frame.timeDiff;
+        var newOpacity = background.opacity() - timeDiff * showSpeed;
+
+        if (newOpacity < 0) {
+            newOpacity = 0;
+            hideIndicator.stop();
+        }
+
+        background.opacity(newOpacity);
+        background.visible(newOpacity > visibleThreshhold);
+        layer.draw();
+    }, layer);
+
+    function show() {
+        hideIndicator.stop();
+        showIndicator.start();
     }
 
-    function unfocus() {
-        fadeMarkerIn.stop();
-        fadeMarkerOut.start();
+    function hide() {
+        unfocus();
+        showIndicator.stop();
+        hideIndicator.start();
     }
 
     text.offsetX(text.width() / 2);
@@ -119,5 +158,7 @@ function addColorIndicator(layer, x, y, callback) {
         setColor: setColor,
         focus: focus,
         unfocus: unfocus,
+        show: show,
+        hide: hide,
     }
 }

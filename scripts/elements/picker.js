@@ -38,9 +38,7 @@ function addColorPicker(layer, x, y, width, close_callback, confirm_callback) {
     }
 
     function update(opacity, offset) {
-        closeButton.opacity(opacity);
-        closeButton.background.offsetY(offset);
-        closeButton.text.offsetY(offset);
+        closeButton.update(opacity, offset);
         for (let button of colorButtons) {
             button.opacity(opacity);
             button.offsetY(offset);

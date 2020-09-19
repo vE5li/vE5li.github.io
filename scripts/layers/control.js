@@ -124,6 +124,22 @@ function addControlLayer(stage, socket, offsetLayers) {
         return background.height() + 10;
     }
 
+    function updateSwitchIndicator(indicator, character, state) {
+        (state) ? indicator.show() : indicator.hide();
+        if (!state && selectedIndicator == character) {
+            openColorPicker.stop();
+            closeColorPicker.start();
+        }
+    }
+
+    function updateShelfSwitch(state) {
+        updateSwitchIndicator(shelfColorIndicator, 'S', state);
+    }
+
+    function updateDeskSwitch(state) {
+        updateSwitchIndicator(deskColorIndicator, 'D', state);
+    }
+
     stage.add(layer);
 
     return {
@@ -136,5 +152,7 @@ function addControlLayer(stage, socket, offsetLayers) {
         deskSwitch: deskSwitch,
         shelfColorIndicator: shelfColorIndicator,
         deskColorIndicator: deskColorIndicator,
+        updateShelfSwitch: updateShelfSwitch,
+        updateDeskSwitch: updateDeskSwitch,
     };
 }
