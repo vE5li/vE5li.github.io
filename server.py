@@ -31,17 +31,17 @@ async def update_indicator_color(color, character):
     for client in clients:
         await client.send(message)
 
-async def echo(websocket, path):
-    clients.append(client)
+async def echo(socket, path):
+    clients.append(socket)
 
     try:
         while True:
-            message = await websocket.recv()
+            message = await socket.recv()
             target = message[0]
 
             if target == '0':
                 message = target + character_from_state(async_state.light_state) + character_from_state(async_state.lamp_state) + character_from_state(async_state.portal_state) + character_from_state(async_state.television_state) + character_from_state(async_state.shelf_state) + character_from_state(async_state.desk_state) + async_state.shelf_color + async_state.desk_color
-                await websocket.send(message)
+                await socket.send(message)
 
             elif target == 'm':
                 message = message[1:]
@@ -88,17 +88,15 @@ async def echo(websocket, path):
                 await update_indicator_color(color, target)
 
             else:
-                print("invalid target " + target)
-                await websocket.send("XX")
+                await socket.send("X")
 
-    except websockets.ConnectionClosedOK:
+    except sockets.ConnectionClosedOK:
         clients.remove(socket)
 
-    except websockets.ConnectionClosedError:
+    except sockets.ConnectionClosedError:
         clients.remove(socket)
 
     except RuntimeError:
-        print("runtime error")
         clients.remove(socket)
 
 start_server = websockets.serve(echo, port=8765)
