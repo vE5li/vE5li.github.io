@@ -31,18 +31,8 @@ async def update_indicator_color(color, character):
     for client in clients:
         await client.send(message)
 
-async def register_client(client):
-    clients.append(client)
-    print("client connected")
-    print("client count " + str(len(clients)))
-
-async def unregister_client(socket):
-    clients.remove(socket)
-    print("client disconnected")
-    print("client count " + str(len(clients)))
-
 async def echo(websocket, path):
-    await register_client(websocket)
+    clients.append(client)
 
     try:
         while True:
@@ -102,17 +92,15 @@ async def echo(websocket, path):
                 await websocket.send("XX")
 
     except websockets.ConnectionClosedOK:
-        await unregister_client(websocket)
+        clients.remove(socket)
 
     except websockets.ConnectionClosedError:
-        await unregister_client(websocket)
+        clients.remove(socket)
 
     except RuntimeError:
         print("runtime error")
-        await unregister_client(websocket)
+        clients.remove(socket)
 
 start_server = websockets.serve(echo, port=8765)
-print("server started")
-
 asyncio.get_event_loop().run_until_complete(start_server)
 asyncio.get_event_loop().run_forever()
