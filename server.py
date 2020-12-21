@@ -90,10 +90,10 @@ async def echo(socket, path):
             else:
                 await socket.send("X")
 
-    except sockets.ConnectionClosedOK:
+    except websockets.ConnectionClosedOK:
         clients.remove(socket)
 
-    except sockets.ConnectionClosedError:
+    except websockets.ConnectionClosedError:
         clients.remove(socket)
 
     except RuntimeError:
