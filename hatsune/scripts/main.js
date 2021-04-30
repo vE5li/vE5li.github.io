@@ -6,7 +6,7 @@ var stage = new Konva.Stage({
     height: canvasHeight
 });
 
-let socket = new WebSocket("ws://192.168.178.80:8765");
+let socket = new WebSocket("ws://pi-server:8765");
 //var bannerLayer = addBannerLayer(stage, socket);
 var controlLayer = addControlLayer(stage, socket, offsetLayers);
 var messageLayer = addMessageLayer(stage, socket, offsetLayers);
