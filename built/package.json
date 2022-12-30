@@ -1,0 +1,12 @@
+{
+  "name": "rustify-your-screen",
+  "version": "0.1.0",
+  "files": [
+    "rustify_your_screen_bg.wasm",
+    "rustify_your_screen.js",
+    "rustify_your_screen.d.ts"
+  ],
+  "module": "rustify_your_screen.js",
+  "types": "rustify_your_screen.d.ts",
+  "sideEffects": false
+}

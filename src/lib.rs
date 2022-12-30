@@ -1,3 +1,10 @@
+use wasm_bindgen::prelude::*;
+
+#[wasm_bindgen]
+extern {
+    pub fn alert(s: &str);
+}
+
 use resvg::usvg_text_layout::{fontdb, TreeTextToPath};
 
 struct Settings {
@@ -13,7 +20,12 @@ struct Settings {
     use_crosses: bool,
 }
 
-fn main() {
+#[wasm_bindgen]
+pub fn greet(name: &str) {
+    alert(&format!("Hello, {}!", name));
+}
+
+fn generate() {
     // Step 1: Generate the SVG file we want to render.
 
     let settings = Settings {
