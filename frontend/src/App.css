@@ -1,0 +1,18 @@
+.MuiInputBase-root::before {
+  border-bottom: 0px solid #53af5b !important;
+}
+
+.MuiSvgIcon-root {
+  color: #f5dd64;
+}
+
+::-moz-selection {
+  /* Code for Firefox */
+  color: #582e6b;
+  background: #f59464;
+}
+
+::selection {
+  color: #582e6b;
+  background: #f59464;
+}
