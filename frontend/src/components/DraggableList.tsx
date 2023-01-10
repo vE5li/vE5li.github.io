@@ -12,11 +12,12 @@ import Divider from "@mui/material/Divider";
 export type Props = {
   items: Item[];
   onDragEnd: OnDragEndResponder;
+  moveCallback: (id: string, direction: number) => void;
   deleteCallback: (id: string) => void;
 };
 
 const DraggableList: FC<Props> = React.memo(
-  ({ items, onDragEnd, deleteCallback }) => {
+  ({ items, onDragEnd, moveCallback, deleteCallback }) => {
     return (
       <>
         <DragDropContext onDragEnd={onDragEnd}>
@@ -28,6 +29,7 @@ const DraggableList: FC<Props> = React.memo(
                     item={item}
                     index={index}
                     key={item.id}
+                    moveCallback={moveCallback}
                     deleteCallback={deleteCallback}
                   />
                 ))}

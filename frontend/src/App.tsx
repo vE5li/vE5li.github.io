@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import "./App.css";
 
 import Box from "@mui/material/Box";
@@ -9,6 +9,7 @@ import Grid from "@mui/material/Grid";
 import Autocomplete from "@mui/material/Autocomplete";
 import Typography from "@mui/material/Typography";
 import NumberInput from "./components/NumberInput";
+import ColorInput from "./components/ColorInput";
 import StyledLink from "./components/StyledLink";
 import StyledCheckbox from "./components/StyledCheckbox";
 import { DropResult } from "react-beautiful-dnd";
@@ -35,7 +36,7 @@ const darkTheme = createTheme({
     text: {
       primary: "#f5dd64",
       secondary: "#f09cff",
-      disabled: "#f5dd64",
+      disabled: "#9b6fb0",
     },
     common: {
       black: "#f5dd64",
@@ -43,54 +44,29 @@ const darkTheme = createTheme({
   },
 });
 
-// Get a list of all available ferrises.
-function getFerrises() {
-  return fetch("https://api.github.com/repos/vE5li/ferrises/git/trees/master")
-    .then((response) => response.json())
-    .then((data) =>
-      console.log(data.tree.map((item: any) => item.path.slice(0, -4)))
-    );
-}
-
 function App() {
   // State
-  const [width, setWidth] = React.useState<number>(1920);
-  const [height, setHeight] = React.useState<number>(1080);
-  const [backgroundColor, setBackgroundColor] =
-    React.useState<string>("#333333");
-  const [ferrisSize, setFerrisSize] = React.useState<number>(320);
-  const [spacing, setSpacing] = React.useState<number>(0);
-  const [separators, setSeparators] = React.useState<boolean>(false);
-  const [separatorRadius, setSeparatorRadius] = React.useState<number>(20);
-  const [separatorColor, setSeparatorColor] = React.useState<string>("#444444");
-  const [crosses, setCrosses] = React.useState<boolean>(false);
-  const [ferrises, setFerrises] = React.useState<Item[]>([
+  const [mapping, setMapping] = useState<string[]>([]);
+  const [width, setWidth] = useState<number>(1920);
+  const [height, setHeight] = useState<number>(1080);
+  const [backgroundColor, setBackgroundColor] = useState<string>("#333333");
+  const [ferrisSize, setFerrisSize] = useState<number>(320);
+  const [spacing, setSpacing] = useState<number>(0);
+  const [separators, setSeparators] = useState<boolean>(false);
+  const [separatorRadius, setSeparatorRadius] = useState<number>(20);
+  const [separatorColor, setSeparatorColor] = useState<string>("#444444");
+  const [crosses, setCrosses] = useState<boolean>(false);
+  const [ferrises, setFerrises] = useState<Item[]>([
     { id: uuidv4(), name: "alien" },
     { id: uuidv4(), name: "tophat" },
   ]);
-  const [imageUrl, setImageUrl] = React.useState<string | undefined>();
-  const [autocompleteInputValue, setAutocompleteInputValue] =
-    React.useState("");
+  const [imageUrl, setImageUrl] = useState<string | undefined>();
+  const [autocompleteInputValue, setAutocompleteInputValue] = useState("");
 
   const worker: Worker = useMemo(
     () => new Worker(new URL("./worker/generate.ts", import.meta.url)),
     []
   );
-
-  // List of all ferrises.
-  const mapping = [
-    "alien",
-    "catgirl",
-    "chromatic",
-    "construction",
-    "dead",
-    "devil",
-    "icecream",
-    "kali",
-    "pumpkin",
-    "santa",
-    "tophat",
-  ];
 
   const generateImage = async () => {
     const settings: TsSettings = {
@@ -108,6 +84,14 @@ function App() {
 
     worker.postMessage(settings);
   };
+
+  // Get a list of all available ferrises.
+  useEffect(() => {
+    fetch("https://api.github.com/repos/vE5li/ferrises/git/trees/master")
+      .then((response) => response.json())
+      .then((data) => data.tree.map((item: any) => item.path.slice(0, -4)))
+      .then((ferrises) => setMapping(ferrises));
+  }, []);
 
   useEffect(() => {
     worker.onmessage = (event: MessageEvent) => {
@@ -140,22 +124,28 @@ function App() {
   const onDragEnd = ({ destination, source }: DropResult) => {
     // dropped outside the list
     if (!destination) return;
-
-    const newFerrises = reorder(ferrises, source.index, destination.index);
-
-    setFerrises(newFerrises);
+    setFerrises(reorder(ferrises, source.index, destination.index));
   };
 
-  const sx = {
-    flexGrow: 1,
-    flexBasis: 1,
+  const moveItem = (id: string, direction: number) => {
+    const source_index = ferrises.findIndex((item) => item.id == id);
+    const destination_index = source_index + direction;
+
+    if (destination_index === -1 || destination_index === ferrises.length)
+      return;
+
+    setFerrises(reorder(ferrises, source_index, destination_index));
   };
 
   return (
     <ThemeProvider theme={darkTheme}>
       <CssBaseline />
-      <Typography variant="h2" align="center" sx={{ padding: "2rem" }}>
-        oxidize-your-screen
+      <Typography
+        variant="h2"
+        align="center"
+        sx={{ padding: "2rem", color: "#f56464" }}
+      >
+        O₃xidize your screen
       </Typography>
       <Box
         className="App"
@@ -173,7 +163,6 @@ function App() {
               label="width"
               defaultValue={width}
               onChange={setWidth}
-              sx={sx}
             />
           </Grid>
           <Grid item xs={14} sm={7} md={2}>
@@ -181,7 +170,6 @@ function App() {
               label="height"
               defaultValue={height}
               onChange={setHeight}
-              sx={sx}
             />
           </Grid>
           <Grid item xs={14} sm={7} md={2}>
@@ -189,7 +177,6 @@ function App() {
               label="ferris size"
               defaultValue={ferrisSize}
               onChange={setFerrisSize}
-              sx={sx}
             />
           </Grid>
           <Grid item xs={14} sm={7} md={2}>
@@ -197,37 +184,27 @@ function App() {
               label="spacing"
               defaultValue={spacing}
               onChange={setSpacing}
-              sx={sx}
             />
           </Grid>
           <Grid item xs={14} sm={7} md={2}>
-            <TextField
+            <ColorInput
               label="background color"
-              type="color"
-              sx={{ ...sx, width: "100%" }}
-              variant="standard"
-              size="small"
-              value={backgroundColor}
-              onChange={(color) => setBackgroundColor(color.target.value)}
+              defaultValue={backgroundColor}
+              onChange={setBackgroundColor}
             />
           </Grid>
           <Grid item xs={14} sm={7} md={2}>
             <NumberInput
               label="separator radius"
-              sx={sx}
               defaultValue={separatorRadius}
               onChange={setSeparatorRadius}
             />
           </Grid>
           <Grid item xs={14} sm={7} md={2}>
-            <TextField
+            <ColorInput
               label="separator color"
-              type="color"
-              sx={{ ...sx, width: "100%" }}
-              size="small"
-              variant="standard"
-              value={separatorColor}
-              onChange={(color) => setSeparatorColor(color.target.value)}
+              defaultValue={separatorColor}
+              onChange={setSeparatorColor}
             />
           </Grid>
         </Grid>
@@ -237,6 +214,11 @@ function App() {
             options={mapping}
             value={null}
             inputValue={autocompleteInputValue}
+            onKeyDown={(event) => {
+              if (event.key === "Escape") {
+                (event.target as any).blur();
+              }
+            }}
             onChange={(_, value) => {
               if (value !== null) {
                 setFerrises([...ferrises, { id: uuidv4(), name: value }]);
@@ -279,6 +261,7 @@ function App() {
             <DraggableList
               items={ferrises}
               onDragEnd={onDragEnd}
+              moveCallback={moveItem}
               deleteCallback={(id) => {
                 setFerrises(ferrises.filter((element) => element.id !== id));
               }}
@@ -331,7 +314,7 @@ function App() {
           padding: "1rem",
           paddingTop: "3rem",
           fontSize: "0.8rem",
-          color: "text.secondary",
+          color: "text.disabled",
         }}
       >
         This website is made with TypeScript and React. You can check out the

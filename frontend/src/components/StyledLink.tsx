@@ -30,6 +30,11 @@ function StyledLink({
         "&:focus": { color: "primary.main", outline: "none" },
       }}
       href={href}
+      onKeyDown={(event) => {
+        if (event.key === "Escape") {
+          (event.target as any).blur();
+        }
+      }}
       onClick={() => {
         if (trigger !== undefined) {
           fetch(trigger);

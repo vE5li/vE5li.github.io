@@ -18,3 +18,7 @@ frontend:
 start:
 	cd frontend/ ;\
 	npm start
+
+format:
+	cd frontend/ ;\
+	npx prettier -w .

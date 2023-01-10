@@ -16,6 +16,13 @@ function StyledCheckbox({ label, value, setValue }: Props) {
         <Checkbox
           checked={value}
           size="small"
+          onKeyDown={(event) => {
+            if (event.key === "Enter") {
+              setValue(!value);
+            } else if (event.key === "Escape") {
+              (event.target as any).blur();
+            }
+          }}
           onChange={(event) => setValue(event.target.checked)}
         />
       }

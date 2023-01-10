@@ -1,22 +1,20 @@
 import React from "react";
 import TextField from "@mui/material/TextField";
 import InputAdornment from "@mui/material/InputAdornment";
-import { SxProps } from "@mui/material";
 
 type Props = {
   label: string;
   defaultValue: number;
   onChange: (value: number) => void;
-  sx?: SxProps;
 };
 
-function NumberInput({ label, defaultValue, onChange, sx }: Props) {
+function NumberInput({ label, defaultValue, onChange }: Props) {
   const [error, setError] = React.useState<boolean>(false);
 
   return (
     <TextField
       label={label}
-      sx={sx}
+      sx={{ flexGrow: 1, flexBasis: 1 }}
       defaultValue={defaultValue}
       error={error}
       size="small"
@@ -29,6 +27,13 @@ function NumberInput({ label, defaultValue, onChange, sx }: Props) {
         }
 
         setError(isNaN(value));
+      }}
+      onKeyDown={(event) => {
+        if (event.key === "Enter") {
+          (event.target as any).blur();
+        } else if (event.key === "Escape") {
+          (event.target as any).blur();
+        }
       }}
       InputProps={{
         startAdornment: (

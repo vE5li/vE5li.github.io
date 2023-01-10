@@ -19,10 +19,16 @@ export type Item = {
 export type Props = {
   item: Item;
   index: number;
+  moveCallback: (id: string, direction: number) => void;
   deleteCallback: (id: string) => void;
 };
 
-const DraggableListItem: FC<Props> = ({ item, index, deleteCallback }) => {
+const DraggableListItem: FC<Props> = ({
+  item,
+  index,
+  moveCallback,
+  deleteCallback,
+}) => {
   return (
     <Draggable draggableId={item.id} index={index}>
       {(provided, snapshot) => (
@@ -34,6 +40,17 @@ const DraggableListItem: FC<Props> = ({ item, index, deleteCallback }) => {
             height: "2rem",
             padding: 0,
             "&:focus": { color: "#f59464", outline: "none" },
+          }}
+          onKeyDown={(event) => {
+            if (event.key === "Escape") {
+              (event.target as any).blur();
+            } else if (event.key === "ArrowUp") {
+              moveCallback(item.id, -1);
+              event.preventDefault();
+            } else if (event.key === "ArrowDown") {
+              moveCallback(item.id, 1);
+              event.preventDefault();
+            }
           }}
           onClick={() => deleteCallback(item.id)}
         >
