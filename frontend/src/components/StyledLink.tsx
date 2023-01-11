@@ -1,4 +1,3 @@
-import React from "react";
 import Link from "@mui/material/Link";
 
 type Props = {
@@ -10,6 +9,9 @@ type Props = {
   trigger?: string;
 };
 
+// Link that doesn't show a box when selected and can start a download when clicked. It can also
+// trigger a GET request when pressed, in this case used to increment a counter whenever someone
+// downloads a wallpaper.
 function StyledLink({
   text,
   href,

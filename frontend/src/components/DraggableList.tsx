@@ -7,7 +7,6 @@ import {
 } from "react-beautiful-dnd";
 import { List } from "@mui/material";
 import { Item } from "./DraggableListItem";
-import Divider from "@mui/material/Divider";
 
 export type Props = {
   items: Item[];
@@ -16,6 +15,7 @@ export type Props = {
   deleteCallback: (id: string) => void;
 };
 
+// List of draggable items, useful for letting the user reorder the elements.
 const DraggableList: FC<Props> = React.memo(
   ({ items, onDragEnd, moveCallback, deleteCallback }) => {
     return (

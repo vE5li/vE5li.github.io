@@ -1,144 +1,141 @@
-import React, { useEffect, useMemo, useState } from "react";
-import "./App.css";
-
+import { useEffect, useMemo, useState } from "react";
+import CssBaseline from "@mui/material/CssBaseline";
 import Box from "@mui/material/Box";
-import TextField from "@mui/material/TextField";
-import InputAdornment from "@mui/material/InputAdornment";
-import Paper from "@mui/material/Paper";
 import Grid from "@mui/material/Grid";
-import Autocomplete from "@mui/material/Autocomplete";
 import Typography from "@mui/material/Typography";
+import { ThemeProvider } from "@mui/material/styles";
+import { DropResult } from "react-beautiful-dnd";
 import NumberInput from "./components/NumberInput";
 import ColorInput from "./components/ColorInput";
 import StyledLink from "./components/StyledLink";
 import StyledCheckbox from "./components/StyledCheckbox";
-import { DropResult } from "react-beautiful-dnd";
 import DraggableList from "./components/DraggableList";
-import { Item } from "./components/DraggableListItem";
-import { reorder } from "./util";
-import { ThemeProvider, createTheme } from "@mui/material/styles";
-import CssBaseline from "@mui/material/CssBaseline";
-import { v4 as uuidv4 } from "uuid";
-import { TsSettings, WorkerMessage } from "./worker/generate";
-
-const darkTheme = createTheme({
-  typography: {
-    fontFamily: "monospace",
-  },
-  palette: {
-    background: {
-      default: "#582e6b",
-      paper: "#3f204d",
-    },
-    primary: {
-      main: "#f59464",
-    },
-    text: {
-      primary: "#f5dd64",
-      secondary: "#f09cff",
-      disabled: "#9b6fb0",
-    },
-    common: {
-      black: "#f5dd64",
-    },
-  },
-});
+import Selector from "./components/Selector";
+import { Item, newItem } from "./components/DraggableListItem";
+import { ImageParameters, WorkerMessage } from "./worker/generate";
+import { reorder } from "./list";
+import theme from "./theme";
+import "./App.css";
 
 function App() {
-  // State
-  const [mapping, setMapping] = useState<string[]>([]);
+  // List of all available Ferris SVG files in https://github.com/vE5li/ferrises.
+  const [availableFerrises, setAvailableFerrises] = useState<string[]>([]);
+
+  // URL to the final image generated using Rust.
+  const [imageUrl, setImageUrl] = useState<string | undefined>();
+
+  // Image parameters.
   const [width, setWidth] = useState<number>(1920);
   const [height, setHeight] = useState<number>(1080);
-  const [backgroundColor, setBackgroundColor] = useState<string>("#333333");
   const [ferrisSize, setFerrisSize] = useState<number>(320);
   const [spacing, setSpacing] = useState<number>(0);
-  const [separators, setSeparators] = useState<boolean>(false);
+  const [backgroundColor, setBackgroundColor] = useState<string>("#333333");
   const [separatorRadius, setSeparatorRadius] = useState<number>(20);
   const [separatorColor, setSeparatorColor] = useState<string>("#444444");
-  const [crosses, setCrosses] = useState<boolean>(false);
   const [ferrises, setFerrises] = useState<Item[]>([
-    { id: uuidv4(), name: "alien" },
-    { id: uuidv4(), name: "tophat" },
+    newItem("alien"),
+    newItem("tophat"),
   ]);
-  const [imageUrl, setImageUrl] = useState<string | undefined>();
-  const [autocompleteInputValue, setAutocompleteInputValue] = useState("");
+  const [useSeparators, setUseSeparators] = useState<boolean>(false);
+  const [useCrosses, setUseCrosses] = useState<boolean>(false);
 
+  // Since the image generation is very computationally expensive, we utilize a worker thread to
+  // do the heavy lifting. If we were to call the 'generate' function in the main thread, the UI would
+  // hang for up to multiple seconds every time the parameters are adjusted.
   const worker: Worker = useMemo(
     () => new Worker(new URL("./worker/generate.ts", import.meta.url)),
     []
   );
 
+  // Create image parameters from the state and send a message to the worker thread with
+  // our input parameters.
   const generateImage = async () => {
-    const settings: TsSettings = {
+    // TypeScript cannot infer the type of our message, so we annotate it manually
+    // to make sure all image parameters are set correctly.
+    const parameters: ImageParameters = {
       width,
       height,
-      backgroundColor,
-      ferrises: ferrises.map((item) => item.name),
       ferrisSize,
-      ferrisOffset: spacing,
-      showCircles: separators,
-      circleRadius: separatorRadius,
-      circleColor: separatorColor,
-      useCrosses: crosses,
+      spacing,
+      backgroundColor,
+      separatorRadius,
+      separatorColor,
+      ferrises: ferrises.map((item) => item.name),
+      useSeparators,
+      useCrosses,
     };
 
-    worker.postMessage(settings);
+    worker.postMessage(parameters);
   };
 
-  // Get a list of all available ferrises.
+  // Get a list of all available Ferrises. This code will only run once.
   useEffect(() => {
     fetch("https://api.github.com/repos/vE5li/ferrises/git/trees/master")
       .then((response) => response.json())
       .then((data) => data.tree.map((item: any) => item.path.slice(0, -4)))
-      .then((ferrises) => setMapping(ferrises));
+      .then((ferrises) => setAvailableFerrises(ferrises));
   }, []);
 
+  // This will re-generate the image any time one of the variables below change.
+  useEffect(() => {
+    generateImage().catch(console.error);
+  }, [
+    width,
+    height,
+    ferrisSize,
+    spacing,
+    backgroundColor,
+    separatorRadius,
+    separatorColor,
+    ferrises,
+    useSeparators,
+    useCrosses,
+  ]);
+
+  // This callback handles messages from the worker thread.
   useEffect(() => {
     worker.onmessage = (event: MessageEvent) => {
       const { data } = event;
       const message: WorkerMessage = data;
 
-      if (message.state === "ready") {
-        generateImage();
+      // The worker has generated a new image, so we set the image URL to our new image.
+      // By doing so we update the preview at the bottom of the page and also change the
+      // file that will be downloaded when clicking the download link.
+      if (message.imageUrl) {
+        setImageUrl(message.imageUrl);
+
+        // A message without data means that the worker is done initializing. This will only
+        // happen once, specifically when the website first loads. It is designed that way
+        // because otherwise the user won't see an image until they change a parameter. On
+        // receiving this empty message we instantly request a new image, our de facto default
+        // image.
       } else {
-        setImageUrl(message.data);
+        generateImage();
       }
     };
   }, [worker]);
 
-  React.useEffect(() => {
-    generateImage().catch(console.error);
-  }, [
-    width,
-    height,
-    backgroundColor,
-    ferrisSize,
-    spacing,
-    separators,
-    separatorRadius,
-    separatorColor,
-    crosses,
-    ferrises,
-  ]);
-
+  // Callback for moving an item up or down the list by dragging and dropping.
   const onDragEnd = ({ destination, source }: DropResult) => {
-    // dropped outside the list
+    // Item was dropped outside the list.
     if (!destination) return;
     setFerrises(reorder(ferrises, source.index, destination.index));
   };
 
+  // Callback for moving an item up or down the list with the arrow keys.
   const moveItem = (id: string, direction: number) => {
     const source_index = ferrises.findIndex((item) => item.id == id);
     const destination_index = source_index + direction;
 
+    // Item would be moved outside the list.
     if (destination_index === -1 || destination_index === ferrises.length)
       return;
-
     setFerrises(reorder(ferrises, source_index, destination_index));
   };
 
+  // Entire website body.
   return (
-    <ThemeProvider theme={darkTheme}>
+    <ThemeProvider theme={theme}>
       <CssBaseline />
       <Typography
         variant="h2"
@@ -210,52 +207,10 @@ function App() {
         </Grid>
         {/* Selecting Ferrises */}
         <Box>
-          <Autocomplete
-            options={mapping}
-            value={null}
-            inputValue={autocompleteInputValue}
-            onKeyDown={(event) => {
-              if (event.key === "Escape") {
-                (event.target as any).blur();
-              }
-            }}
-            onChange={(_, value) => {
-              if (value !== null) {
-                setFerrises([...ferrises, { id: uuidv4(), name: value }]);
-              }
-              setAutocompleteInputValue("");
-            }}
-            onInputChange={(_, value) => {
-              setAutocompleteInputValue(value);
-            }}
-            autoHighlight
-            PaperComponent={(props) => {
-              return (
-                <Paper
-                  elevation={1}
-                  square={true}
-                  variant="elevation"
-                  {...props}
-                />
-              );
-            }}
-            renderInput={(params) => (
-              <TextField
-                {...params}
-                label="add a ferris"
-                size="small"
-                variant="standard"
-                InputProps={{
-                  ...params.InputProps,
-                  startAdornment: (
-                    <>
-                      <InputAdornment position="start">{">"}</InputAdornment>
-                      {params.InputProps.startAdornment}
-                    </>
-                  ),
-                }}
-              />
-            )}
+          <Selector
+            label="add a ferris"
+            options={availableFerrises}
+            selectCallback={(name) => setFerrises([...ferrises, newItem(name)])}
           />
           {ferrises.length > 0 && (
             <DraggableList
@@ -268,7 +223,7 @@ function App() {
             />
           )}
         </Box>
-        {/* Spacers */}
+        {/* Separators */}
         <Grid
           container
           spacing={2}
@@ -278,16 +233,16 @@ function App() {
           <Grid item sm={6} md={2}>
             <StyledCheckbox
               label="separators"
-              value={separators}
-              setValue={setSeparators}
+              value={useSeparators}
+              setValue={setUseSeparators}
             />
           </Grid>
           <Grid item sm={6} md={2}>
-            {separators && (
+            {useSeparators && (
               <StyledCheckbox
                 label="use crosses as separators"
-                value={crosses}
-                setValue={setCrosses}
+                value={useCrosses}
+                setValue={setUseCrosses}
               />
             )}
           </Grid>

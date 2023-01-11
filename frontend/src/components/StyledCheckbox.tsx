@@ -1,4 +1,3 @@
-import React from "react";
 import FormControlLabel from "@mui/material/FormControlLabel";
 import Checkbox from "@mui/material/Checkbox";
 
@@ -8,6 +7,7 @@ type Props = {
   setValue: (value: boolean) => void;
 };
 
+// Material UI Checkbox that can be toggled by pressing enter.
 function StyledCheckbox({ label, value, setValue }: Props) {
   return (
     <FormControlLabel
@@ -17,10 +17,13 @@ function StyledCheckbox({ label, value, setValue }: Props) {
           checked={value}
           size="small"
           onKeyDown={(event) => {
-            if (event.key === "Enter") {
-              setValue(!value);
-            } else if (event.key === "Escape") {
-              (event.target as any).blur();
+            switch (event.key) {
+              case "Escape":
+                (event.target as any).blur();
+                break;
+              case "Enter":
+                setValue(!value);
+                break;
             }
           }}
           onChange={(event) => setValue(event.target.checked)}

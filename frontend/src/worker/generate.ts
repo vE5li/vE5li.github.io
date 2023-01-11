@@ -1,33 +1,32 @@
 /* eslint-disable no-restricted-globals */
-import init, { generate, Settings } from "../core/core";
+import init, { generate } from "../core/core";
 
-export type TsSettings = {
+export type ImageParameters = {
   width: number;
   height: number;
-  backgroundColor: string;
-  ferrises: string[];
   ferrisSize: number;
-  ferrisOffset: number;
-  showCircles: boolean;
-  circleRadius: number;
-  circleColor: string;
+  spacing: number;
+  backgroundColor: string;
+  separatorRadius: number;
+  separatorColor: string;
+  ferrises: string[];
+  useSeparators: boolean;
   useCrosses: boolean;
 };
 
-export type ReadyMessage = {
-  state: "ready";
-};
+// A WorkerMessage is sent from the worker to the main thread. This message is first sent after
+// the worker is initialized so it does not contain an image URL, but rather trigger the generation
+// of a new image to be displayed. Otherwise this message is used to update the image URL after
+// generating a new image.
+export type WorkerMessage = { imageUrl?: string };
 
-export type ImageUrlMessage = {
-  state: "data";
-  data: string;
-};
-
-export type WorkerMessage = ReadyMessage | ImageUrlMessage;
-
+// Initialize Wasm.
 init().then(() => {
+  // This will cache the SVG any data that is fetched from the Ferris repository (https://github.com/vE5li/ferrises)
+  // so we don't do duplicate work.
   let ferrisCache: Record<string, string> = {};
 
+  // Fetch SVG data from GitHub given the name of a Ferris and cache the data.
   const fetchFerris = async (ferris: string) => {
     let combined = "";
 
@@ -61,6 +60,8 @@ init().then(() => {
     return finalData;
   };
 
+  // Produces a single string containing the data for every selected Ferris, separated by a newline.
+  // The SVG data for each Ferris will either be read from the cache or fetched from GitHub.
   const getFerrisData = async (ferrises: string[]) => {
     const ferrisData = await Promise.all(
       ferrises.map(async (ferris) => {
@@ -73,44 +74,42 @@ init().then(() => {
     return ferrisData.join("\n");
   };
 
-  self.onmessage = (event: MessageEvent<TsSettings>) => {
+  // This function is called when we received a message from the main thread.
+  self.onmessage = (event: MessageEvent<ImageParameters>) => {
     const { data } = event;
 
     getFerrisData(data.ferrises).then((ferrisData) => {
-      const settings = new Settings(
+      const imageData = generate(
         data.width,
         data.height,
-        data.backgroundColor,
-        ferrisData,
         data.ferrisSize,
-        data.ferrisOffset,
-        data.showCircles,
-        data.circleRadius,
-        data.circleColor,
+        data.spacing,
+        data.backgroundColor,
+        data.separatorRadius,
+        data.separatorColor,
+        ferrisData,
+        data.useSeparators,
         data.useCrosses
       );
 
-      const imageData = generate(settings);
-      const url = URL.createObjectURL(
-        new Blob([imageData], {
-          type: "image/png",
-        })
-      );
+      // Create a blob containing our image data and set the MIME type to PNG.
+      // If we don't set the mime type here some browsers will download the image as a txt file.
+      const imageBlob = new Blob([imageData], {
+        type: "image/png",
+      });
 
-      const message: ImageUrlMessage = {
-        state: "data",
-        data: url,
-      };
+      // Create a URL to our binary blob.
+      const imageUrl = URL.createObjectURL(imageBlob);
 
-      self.postMessage(message);
+      // Send the new image to the main thread.
+      self.postMessage({ imageUrl });
     });
   };
 
-  const message: ReadyMessage = {
-    state: "ready",
-  };
-
-  self.postMessage(message);
+  // Getting here means that the worker is ready to start generating images, so we send an empty
+  // message to inform the main thread. On receiving this message, the main thread will instantly
+  // request an image with the default parameters to display as a preview.
+  self.postMessage({});
 });
 
 export {};

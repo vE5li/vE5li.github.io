@@ -8,6 +8,8 @@ type Props = {
   onChange: (value: number) => void;
 };
 
+// Basic input field that will validate the text the user entered. The onChange function
+// is only called if the input is a number.
 function NumberInput({ label, defaultValue, onChange }: Props) {
   const [error, setError] = React.useState<boolean>(false);
 
@@ -29,10 +31,11 @@ function NumberInput({ label, defaultValue, onChange }: Props) {
         setError(isNaN(value));
       }}
       onKeyDown={(event) => {
-        if (event.key === "Enter") {
-          (event.target as any).blur();
-        } else if (event.key === "Escape") {
-          (event.target as any).blur();
+        switch (event.key) {
+          case "Escape":
+          case "Enter":
+            (event.target as any).blur();
+            break;
         }
       }}
       InputProps={{

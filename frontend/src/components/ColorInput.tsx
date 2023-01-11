@@ -1,4 +1,3 @@
-import React from "react";
 import TextField from "@mui/material/TextField";
 
 type Props = {
@@ -7,7 +6,8 @@ type Props = {
   onChange: (value: string) => void;
 };
 
-function NumberInput({ label, defaultValue, onChange }: Props) {
+// Input field that uses the color picker provided by the browser.
+function ColorInput({ label, defaultValue, onChange }: Props) {
   return (
     <TextField
       label={label}
@@ -26,4 +26,4 @@ function NumberInput({ label, defaultValue, onChange }: Props) {
   );
 }
 
-export default NumberInput;
+export default ColorInput;
