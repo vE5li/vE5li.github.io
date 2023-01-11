@@ -55,6 +55,9 @@ const DraggableListItem: FC<Props> = ({
                 moveCallback(item.id, 1);
                 event.preventDefault();
                 break;
+              case "Delete":
+                deleteCallback(item.id);
+                break;
             }
           }}
           onClick={() => deleteCallback(item.id)}

@@ -1,4 +1,6 @@
-.PHONY: clean core frontend
+.PHONY: clean core frontend start format
+
+all: clean core frontend
 
 clean:
 	rm -rf docs

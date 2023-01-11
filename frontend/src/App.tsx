@@ -4,7 +4,6 @@ import Box from "@mui/material/Box";
 import Grid from "@mui/material/Grid";
 import Typography from "@mui/material/Typography";
 import { ThemeProvider } from "@mui/material/styles";
-import { DropResult } from "react-beautiful-dnd";
 import NumberInput from "./components/NumberInput";
 import ColorInput from "./components/ColorInput";
 import StyledLink from "./components/StyledLink";
@@ -13,7 +12,6 @@ import DraggableList from "./components/DraggableList";
 import Selector from "./components/Selector";
 import { Item, newItem } from "./components/DraggableListItem";
 import { ImageParameters, WorkerMessage } from "./worker/generate";
-import { reorder } from "./list";
 import theme from "./theme";
 import "./App.css";
 
@@ -115,24 +113,6 @@ function App() {
     };
   }, [worker]);
 
-  // Callback for moving an item up or down the list by dragging and dropping.
-  const onDragEnd = ({ destination, source }: DropResult) => {
-    // Item was dropped outside the list.
-    if (!destination) return;
-    setFerrises(reorder(ferrises, source.index, destination.index));
-  };
-
-  // Callback for moving an item up or down the list with the arrow keys.
-  const moveItem = (id: string, direction: number) => {
-    const source_index = ferrises.findIndex((item) => item.id == id);
-    const destination_index = source_index + direction;
-
-    // Item would be moved outside the list.
-    if (destination_index === -1 || destination_index === ferrises.length)
-      return;
-    setFerrises(reorder(ferrises, source_index, destination_index));
-  };
-
   // Entire website body.
   return (
     <ThemeProvider theme={theme}>
@@ -213,14 +193,7 @@ function App() {
             selectCallback={(name) => setFerrises([...ferrises, newItem(name)])}
           />
           {ferrises.length > 0 && (
-            <DraggableList
-              items={ferrises}
-              onDragEnd={onDragEnd}
-              moveCallback={moveItem}
-              deleteCallback={(id) => {
-                setFerrises(ferrises.filter((element) => element.id !== id));
-              }}
-            />
+            <DraggableList items={ferrises} setItems={setFerrises} />
           )}
         </Box>
         {/* Separators */}
