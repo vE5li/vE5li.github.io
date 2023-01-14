@@ -26,42 +26,23 @@ init().then(() => {
   // so we don't do duplicate work.
   let ferrisCache: Record<string, string> = {};
 
-  // Fetch SVG data from GitHub given the name of a Ferris and cache the data.
+  // Fetch SVG data as Base64 from GitHub given the name of a Ferris and cache the data.
   const fetchFerris = async (ferris: string) => {
-    let combined = "";
-
-    const data = await fetch(
+    const ferrisData = await fetch(
       "https://raw.githubusercontent.com/vE5li/ferrises/master/" +
         ferris +
         ".svg"
-    );
+    )
+      .then((response) => response.text())
+      .then((data) => btoa(data));
 
-    if (data.body === null) {
-      // TODO: proper handling here
-      return "failed";
-    }
-
-    const reader = data.body.getReader();
-
-    await reader.read().then(async function foo({ done, value }) {
-      if (value) {
-        combined += new TextDecoder("utf-8").decode(value);
-      }
-
-      if (done) {
-        return;
-      }
-
-      await reader.read().then(foo);
-    });
-
-    const finalData = btoa(combined);
-    ferrisCache[ferris] = finalData;
-    return finalData;
+    ferrisCache[ferris] = ferrisData;
+    return ferrisData;
   };
 
   // Produces a single string containing the data for every selected Ferris, separated by a newline.
-  // The SVG data for each Ferris will either be read from the cache or fetched from GitHub.
+  // The SVG data for each Ferris will either be read from the cache or fetched from GitHub. The Ferris
+  // data is encoded as Base64 and needs to be decoded on the Rust side.
   const getFerrisData = async (ferrises: string[]) => {
     const ferrisData = await Promise.all(
       ferrises.map(async (ferris) => {

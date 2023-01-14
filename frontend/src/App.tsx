@@ -92,15 +92,14 @@ function App() {
 
   // This callback handles messages from the worker thread.
   useEffect(() => {
-    worker.onmessage = (event: MessageEvent) => {
+    worker.onmessage = (event: MessageEvent<WorkerMessage>) => {
       const { data } = event;
-      const message: WorkerMessage = data;
 
       // The worker has generated a new image, so we set the image URL to our new image.
       // By doing so we update the preview at the bottom of the page and also change the
       // file that will be downloaded when clicking the download link.
-      if (message.imageUrl) {
-        setImageUrl(message.imageUrl);
+      if (data.imageUrl) {
+        setImageUrl(data.imageUrl);
 
         // A message without data means that the worker is done initializing. This will only
         // happen once, specifically when the website first loads. It is designed that way
