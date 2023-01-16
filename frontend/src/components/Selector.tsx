@@ -20,6 +20,7 @@ function Selector({ label, options, selectCallback }: Props) {
       options={options}
       value={null}
       inputValue={inputValue}
+      sx={{ paddingTop: "1rem" }}
       onKeyDown={(event) => {
         if (event.key === "Escape") {
           (event.target as any).blur();

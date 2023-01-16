@@ -7,11 +7,16 @@ export type ImageParameters = {
   ferrisSize: number;
   spacing: number;
   backgroundColor: string;
-  separatorRadius: number;
-  separatorColor: string;
   ferrises: string[];
   useSeparators: boolean;
   useCrosses: boolean;
+  separatorRadius: number;
+  separatorColor: string;
+  useShadows: boolean;
+  shadowOffset: number;
+  shadowSpread: number;
+  shadowOpacity: number;
+  shadowColor: string;
 };
 
 // A WorkerMessage is sent from the worker to the main thread. This message is first sent after
@@ -66,11 +71,16 @@ init().then(() => {
         data.ferrisSize,
         data.spacing,
         data.backgroundColor,
-        data.separatorRadius,
-        data.separatorColor,
         ferrisData,
         data.useSeparators,
-        data.useCrosses
+        data.useCrosses,
+        data.separatorRadius,
+        data.separatorColor,
+        data.useShadows,
+        data.shadowOffset,
+        data.shadowSpread,
+        data.shadowOpacity,
+        data.shadowColor
       );
 
       // Create a blob containing our image data and set the MIME type to PNG.

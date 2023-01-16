@@ -3,6 +3,7 @@ import CssBaseline from "@mui/material/CssBaseline";
 import Box from "@mui/material/Box";
 import Grid from "@mui/material/Grid";
 import Typography from "@mui/material/Typography";
+import Card from "@mui/material/Card";
 import { ThemeProvider } from "@mui/material/styles";
 import NumberInput from "./components/NumberInput";
 import ColorInput from "./components/ColorInput";
@@ -28,14 +29,19 @@ function App() {
   const [ferrisSize, setFerrisSize] = useState<number>(320);
   const [spacing, setSpacing] = useState<number>(0);
   const [backgroundColor, setBackgroundColor] = useState<string>("#333333");
-  const [separatorRadius, setSeparatorRadius] = useState<number>(20);
-  const [separatorColor, setSeparatorColor] = useState<string>("#444444");
   const [ferrises, setFerrises] = useState<Item[]>([
     newItem("alien"),
     newItem("tophat"),
   ]);
   const [useSeparators, setUseSeparators] = useState<boolean>(false);
   const [useCrosses, setUseCrosses] = useState<boolean>(false);
+  const [separatorRadius, setSeparatorRadius] = useState<number>(20);
+  const [separatorColor, setSeparatorColor] = useState<string>("#444444");
+  const [useShadows, setUseShadows] = useState<boolean>(false);
+  const [shadowOffset, setShadowOffset] = useState<number>(5);
+  const [shadowSpread, setShadowSpread] = useState<number>(5);
+  const [shadowOpacity, setShadowOpacity] = useState<number>(0.8);
+  const [shadowColor, setShadowColor] = useState<string>("#000000");
 
   // Since the image generation is very computationally expensive, we utilize a worker thread to
   // do the heavy lifting. If we were to call the 'generate' function in the main thread, the UI would
@@ -56,11 +62,16 @@ function App() {
       ferrisSize,
       spacing,
       backgroundColor,
-      separatorRadius,
-      separatorColor,
       ferrises: ferrises.map((item) => item.name),
       useSeparators,
       useCrosses,
+      separatorRadius,
+      separatorColor,
+      useShadows,
+      shadowOffset,
+      shadowSpread,
+      shadowOpacity,
+      shadowColor,
     };
 
     worker.postMessage(parameters);
@@ -83,11 +94,16 @@ function App() {
     ferrisSize,
     spacing,
     backgroundColor,
-    separatorRadius,
-    separatorColor,
     ferrises,
     useSeparators,
     useCrosses,
+    separatorRadius,
+    separatorColor,
+    useShadows,
+    shadowOffset,
+    shadowSpread,
+    shadowOpacity,
+    shadowColor,
   ]);
 
   // This callback handles messages from the worker thread.
@@ -116,76 +132,85 @@ function App() {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <Typography
-        variant="h2"
-        align="center"
-        sx={{ padding: "2rem", color: "#f56464" }}
-      >
-        O₃xidize your screen
-      </Typography>
       <Box
         className="App"
         sx={{
           display: "flex",
           flexDirection: "column",
-          gap: "1rem",
+          gap: "1.5rem",
           margin: "1rem",
         }}
       >
         {/* Generic image settings */}
-        <Grid container spacing={2} columns={14}>
-          <Grid item xs={12} sm={7} md={2}>
-            <NumberInput
-              label="width"
-              defaultValue={width}
-              onChange={setWidth}
-            />
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: "column",
+            gap: "1rem",
+            border: "6px",
+            borderColor: "#de4e9d",
+            borderLeftStyle: "solid",
+            paddingLeft: "1rem",
+          }}
+        >
+          <Typography sx={{ color: "#de4e9d" }} fontSize="0.8rem">
+            generic image settings. spacing can also be negative.
+          </Typography>
+          <Grid container spacing={2} columns={10}  sx={{ "& .MuiGrid-item": { paddingTop: "0.5rem" } }}
+>
+            <Grid item xs={10} sm={5} md={2}>
+              <NumberInput
+                label="width"
+                defaultValue={width}
+                onChange={setWidth}
+              />
+            </Grid>
+            <Grid item xs={10} sm={5} md={2}>
+              <NumberInput
+                label="height"
+                defaultValue={height}
+                onChange={setHeight}
+              />
+            </Grid>
+            <Grid item xs={10} sm={5} md={2}>
+              <NumberInput
+                label="ferris size"
+                defaultValue={ferrisSize}
+                onChange={setFerrisSize}
+              />
+            </Grid>
+            <Grid item xs={10} sm={5} md={2}>
+              <NumberInput
+                label="spacing"
+                defaultValue={spacing}
+                onChange={setSpacing}
+              />
+            </Grid>
+            <Grid item xs={10} sm={5} md={2}>
+              <ColorInput
+                label="background color"
+                defaultValue={backgroundColor}
+                onChange={setBackgroundColor}
+              />
+            </Grid>
           </Grid>
-          <Grid item xs={14} sm={7} md={2}>
-            <NumberInput
-              label="height"
-              defaultValue={height}
-              onChange={setHeight}
-            />
-          </Grid>
-          <Grid item xs={14} sm={7} md={2}>
-            <NumberInput
-              label="ferris size"
-              defaultValue={ferrisSize}
-              onChange={setFerrisSize}
-            />
-          </Grid>
-          <Grid item xs={14} sm={7} md={2}>
-            <NumberInput
-              label="spacing"
-              defaultValue={spacing}
-              onChange={setSpacing}
-            />
-          </Grid>
-          <Grid item xs={14} sm={7} md={2}>
-            <ColorInput
-              label="background color"
-              defaultValue={backgroundColor}
-              onChange={setBackgroundColor}
-            />
-          </Grid>
-          <Grid item xs={14} sm={7} md={2}>
-            <NumberInput
-              label="separator radius"
-              defaultValue={separatorRadius}
-              onChange={setSeparatorRadius}
-            />
-          </Grid>
-          <Grid item xs={14} sm={7} md={2}>
-            <ColorInput
-              label="separator color"
-              defaultValue={separatorColor}
-              onChange={setSeparatorColor}
-            />
-          </Grid>
-        </Grid>
+        </Box>
         {/* Selecting Ferrises */}
-        <Box>
+        <Box
+          sx={{
+            border: "6px",
+            gap: "1rem",
+            borderColor: "#de4e9d",
+            borderLeftStyle: "solid",
+            paddingLeft: "1rem",
+          }}
+        >
+          <Typography sx={{ color: "#de4e9d" }} fontSize="0.8rem">
+            list of ferrises. the same ferris can be added multiple times.
+            left click on an item to remove it from the list. focused items can
+            also be moved with the arrow keys and removed by pressing the delete
+            key.
+          </Typography>
           <Selector
             label="add a ferris"
             options={availableFerrises}
@@ -196,29 +221,107 @@ function App() {
           )}
         </Box>
         {/* Separators */}
-        <Grid
-          container
-          spacing={2}
-          columns={6}
-          sx={{ "& .MuiGrid-item": { paddingTop: "0" } }}
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: "column",
+            gap: "1rem",
+            border: "6px",
+            borderColor: "#de4e9d",
+            borderLeftStyle: "solid",
+            paddingLeft: "1rem",
+          }}
         >
-          <Grid item sm={6} md={2}>
-            <StyledCheckbox
-              label="separators"
-              value={useSeparators}
-              setValue={setUseSeparators}
-            />
-          </Grid>
-          <Grid item sm={6} md={2}>
-            {useSeparators && (
-              <StyledCheckbox
-                label="use crosses as separators"
-                value={useCrosses}
-                setValue={setUseCrosses}
-              />
-            )}
-          </Grid>
-        </Grid>
+          <Typography sx={{ color: "#de4e9d" }} fontSize="0.8rem">
+            separators between ferrises. checkboxes can be toggled with
+            enter.
+          </Typography>
+          <StyledCheckbox
+            label="separators"
+            value={useSeparators}
+            setValue={setUseSeparators}
+          />
+          {useSeparators && (
+            <Grid container spacing={2} columns={6}  sx={{ "& .MuiGrid-item": { paddingTop: "0.5rem" } }}>
+              <Grid item xs={6} sm={3} md={2}>
+                <StyledCheckbox
+                  label="crosses as separators"
+                  value={useCrosses}
+                  setValue={setUseCrosses}
+                />
+              </Grid>
+              <Grid item xs={6} sm={3} md={2}>
+                <NumberInput
+                  label="separator radius"
+                  defaultValue={separatorRadius}
+                  onChange={setSeparatorRadius}
+                />
+              </Grid>
+              <Grid item xs={6} sm={3} md={2}>
+                <ColorInput
+                  label="separator color"
+                  defaultValue={separatorColor}
+                  onChange={setSeparatorColor}
+                />
+              </Grid>
+            </Grid>
+          )}
+        </Box>
+        {/* Drop shadows */}
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: "column",
+            gap: "1rem",
+            border: "6px",
+            borderColor: "#de4e9d",
+            borderLeftStyle: "solid",
+            paddingLeft: "1rem",
+          }}
+        >
+          <Typography sx={{ color: "#de4e9d" }} fontSize="0.8rem">
+            drop shadows below ferrises. checkboxes can be toggled with
+            enter. opacity must be between 0 and 1.
+          </Typography>
+          <StyledCheckbox
+            label="shadows"
+            value={useShadows}
+            setValue={setUseShadows}
+          />
+          {useShadows && (
+            <Grid container spacing={2} columns={8}  sx={{ "& .MuiGrid-item": { paddingTop: "0.5rem" } }}>
+              <Grid item xs={8} sm={4} md={2}>
+                <NumberInput
+                  label="shadow offset"
+                  defaultValue={shadowOffset}
+                  onChange={setShadowOffset}
+                />
+              </Grid>
+              <Grid item xs={8} sm={4} md={2}>
+                <NumberInput
+                  label="shadow spread"
+                  defaultValue={shadowSpread}
+                  onChange={setShadowSpread}
+                />
+              </Grid>
+              <Grid item xs={8} sm={4} md={2}>
+                <NumberInput
+                  label="shadow opacity"
+                  defaultValue={shadowOpacity}
+                  onChange={setShadowOpacity}
+                  validator={(value) => value >= 0 && value <= 1}
+                />
+              </Grid>
+              <Grid item xs={8} sm={4} md={2}>
+                <ColorInput
+                  label="shadow color"
+                  defaultValue={shadowColor}
+                  onChange={setShadowColor}
+                />
+              </Grid>
+            </Grid>
+          )}
+        </Box>
         {/* Image preview and download */}
         {imageUrl !== undefined && (
           <>

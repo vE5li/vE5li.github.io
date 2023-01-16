@@ -10,11 +10,16 @@ pub fn generate(
     ferris_size: f32,
     spacing: f32,
     background_color: &str,
-    separator_radius: f32,
-    separator_color: &str,
     ferrises: &str,
     use_separators: bool,
     use_crosses: bool,
+    separator_radius: f32,
+    separator_color: &str,
+    use_shadows: bool,
+    shadow_offset: f32,
+    shadow_spread: f32,
+    shadow_opacity: f32,
+    shadow_color: &str,
 ) -> Vec<u8> {
     // Step 1: Generate the SVG file we want to render.
 
@@ -26,6 +31,19 @@ pub fn generate(
         r#"<svg viewBox="0 0 {} {}" xmlns="http://www.w3.org/2000/svg">\n"#,
         width, height
     ));
+
+    // Blur filter.
+    if use_shadows {
+        svg_data.push_str(&format!(
+            r#"
+     <defs>
+      <filter id="shadow">
+       <feDropShadow dx="{shadow_offset}" dy="{shadow_offset}" stdDeviation="{shadow_spread}" flood-color="{shadow_color}" flood-opacity="{shadow_opacity}" />
+      </filter>
+     </defs>
+    "#,
+        ));
+    }
 
     // Background with a solid color.
     svg_data.push_str(&format!(
@@ -73,9 +91,14 @@ pub fn generate(
             }
         }
 
+        let filter = match use_shadows {
+            true => r#"filter="url(#shadow)" "#,
+            false => "",
+        };
+
         // Add the Ferris with the correct position and scale.
         svg_data.push_str(&format!(
-            r#"<image x="{x_offset}" y="{}" width="{size}" height="{size}" href="data:image/svg+xml;base64,{}"/>\n"#,
+            r#"<image x="{x_offset}" y="{}" width="{size}" height="{size}" {filter}href="data:image/svg+xml;base64,{}"/>\n"#,
             (height - ferris_size) / 2.0,
             ferris,
             size = ferris_size,
