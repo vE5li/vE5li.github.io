@@ -3,7 +3,6 @@ import CssBaseline from "@mui/material/CssBaseline";
 import Box from "@mui/material/Box";
 import Grid from "@mui/material/Grid";
 import Typography from "@mui/material/Typography";
-import Card from "@mui/material/Card";
 import { ThemeProvider } from "@mui/material/styles";
 import NumberInput from "./components/NumberInput";
 import ColorInput from "./components/ColorInput";
@@ -148,12 +147,12 @@ function App() {
             flexDirection: "column",
             gap: "1rem",
             border: "6px",
-            borderColor: "#de4e9d",
+            borderColor: "primary.dark",
             borderLeftStyle: "solid",
             paddingLeft: "1rem",
           }}
         >
-          <Typography sx={{ color: "#de4e9d" }} fontSize="0.8rem">
+          <Typography sx={{ color: "primary.dark" }} fontSize="0.8rem">
             generic image settings. spacing can also be negative.
           </Typography>
           <Grid container spacing={2} columns={10}  sx={{ "& .MuiGrid-item": { paddingTop: "0.5rem" } }}
@@ -200,12 +199,12 @@ function App() {
           sx={{
             border: "6px",
             gap: "1rem",
-            borderColor: "#de4e9d",
+            borderColor: "primary.dark",
             borderLeftStyle: "solid",
             paddingLeft: "1rem",
           }}
         >
-          <Typography sx={{ color: "#de4e9d" }} fontSize="0.8rem">
+          <Typography sx={{ color: "primary.dark" }} fontSize="0.8rem">
             list of ferrises. the same ferris can be added multiple times.
             left click on an item to remove it from the list. focused items can
             also be moved with the arrow keys and removed by pressing the delete
@@ -227,12 +226,12 @@ function App() {
             flexDirection: "column",
             gap: "1rem",
             border: "6px",
-            borderColor: "#de4e9d",
+            borderColor: "primary.dark",
             borderLeftStyle: "solid",
             paddingLeft: "1rem",
           }}
         >
-          <Typography sx={{ color: "#de4e9d" }} fontSize="0.8rem">
+          <Typography sx={{ color: "primary.dark" }} fontSize="0.8rem">
             separators between ferrises. checkboxes can be toggled with
             enter.
           </Typography>
@@ -274,12 +273,12 @@ function App() {
             flexDirection: "column",
             gap: "1rem",
             border: "6px",
-            borderColor: "#de4e9d",
+            borderColor: "primary.dark",
             borderLeftStyle: "solid",
             paddingLeft: "1rem",
           }}
         >
-          <Typography sx={{ color: "#de4e9d" }} fontSize="0.8rem">
+          <Typography sx={{ color: "primary.dark" }} fontSize="0.8rem">
             drop shadows below ferrises. checkboxes can be toggled with
             enter. opacity must be between 0 and 1.
           </Typography>

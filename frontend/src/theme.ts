@@ -12,6 +12,7 @@ export default createTheme({
     },
     primary: {
       main: "#f59464",
+      dark: "#1bcfcf",
     },
     text: {
       primary: "#f5dd64",
