@@ -11,6 +11,7 @@ clean:
 core:
 	cd core/ ;\
 	wasm-pack build --target web
+	rm -rf frontend/src/core
 	cp -r core/pkg/ frontend/src/core
 
 frontend:
