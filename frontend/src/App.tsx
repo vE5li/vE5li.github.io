@@ -380,7 +380,8 @@ function App() {
           fontSize="0.8rem"
           tabIndex={-1}
         />
-        .
+        . If you would like to add a Ferris or a separator, please open a merge
+        request!
       </Typography>
     </ThemeProvider>
   );
