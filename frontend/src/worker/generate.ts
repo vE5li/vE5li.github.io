@@ -1,6 +1,15 @@
 /* eslint-disable no-restricted-globals */
 import init, { generate } from "../core/core";
 
+// Temporary: can be removed once wasm-bindgen exports string-enums.
+// https://github.com/rustwasm/wasm-bindgen/issues/3057
+export enum SeparatorType {
+  Point = "point",
+  Diamond = "diamond",
+  Cross = "cross",
+  Rust = "rust",
+}
+
 export type ImageParameters = {
   width: number;
   height: number;
@@ -9,7 +18,7 @@ export type ImageParameters = {
   backgroundColor: string;
   ferrises: string[];
   useSeparators: boolean;
-  useCrosses: boolean;
+  separatorType: SeparatorType;
   separatorRadius: number;
   separatorColor: string;
   useShadows: boolean;
@@ -45,24 +54,27 @@ init().then(() => {
     return ferrisData;
   };
 
-  // Produces a single string containing the data for every selected Ferris, separated by a newline.
+  // Produces an array of strings containing the data for every selected Ferris.
   // The SVG data for each Ferris will either be read from the cache or fetched from GitHub. The Ferris
   // data is encoded as Base64 and needs to be decoded on the Rust side.
   const getFerrisData = async (ferrises: string[]) => {
-    const ferrisData = await Promise.all(
+    return await Promise.all(
       ferrises.map(async (ferris) => {
         return ferrisCache[ferris]
           ? Promise.resolve(ferrisCache[ferris])
           : fetchFerris(ferris);
       })
     );
-
-    return ferrisData.join("\n");
   };
 
   // This function is called when we received a message from the main thread.
   self.onmessage = (event: MessageEvent<ImageParameters>) => {
     const { data } = event;
+
+    // TODO: why is this needed
+    if (data.ferrises === undefined) {
+      return;
+    }
 
     getFerrisData(data.ferrises).then((ferrisData) => {
       const imageData = generate(
@@ -73,7 +85,7 @@ init().then(() => {
         data.backgroundColor,
         ferrisData,
         data.useSeparators,
-        data.useCrosses,
+        data.separatorType,
         data.separatorRadius,
         data.separatorColor,
         data.useShadows,

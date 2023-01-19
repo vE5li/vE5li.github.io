@@ -10,8 +10,13 @@ import StyledLink from "./components/StyledLink";
 import StyledCheckbox from "./components/StyledCheckbox";
 import DraggableList from "./components/DraggableList";
 import Selector from "./components/Selector";
+import Select from "./components/Select";
 import { Item, newItem } from "./components/DraggableListItem";
-import { ImageParameters, WorkerMessage } from "./worker/generate";
+import {
+  ImageParameters,
+  SeparatorType,
+  WorkerMessage,
+} from "./worker/generate";
 import theme from "./theme";
 import "./App.css";
 
@@ -33,7 +38,9 @@ function App() {
     newItem("tophat"),
   ]);
   const [useSeparators, setUseSeparators] = useState<boolean>(false);
-  const [useCrosses, setUseCrosses] = useState<boolean>(false);
+  const [separatorType, setSeparatorType] = useState<SeparatorType>(
+    SeparatorType.Point
+  );
   const [separatorRadius, setSeparatorRadius] = useState<number>(20);
   const [separatorColor, setSeparatorColor] = useState<string>("#444444");
   const [useShadows, setUseShadows] = useState<boolean>(false);
@@ -63,7 +70,7 @@ function App() {
       backgroundColor,
       ferrises: ferrises.map((item) => item.name),
       useSeparators,
-      useCrosses,
+      separatorType,
       separatorRadius,
       separatorColor,
       useShadows,
@@ -95,7 +102,7 @@ function App() {
     backgroundColor,
     ferrises,
     useSeparators,
-    useCrosses,
+    separatorType,
     separatorRadius,
     separatorColor,
     useShadows,
@@ -122,7 +129,7 @@ function App() {
         // receiving this empty message we instantly request a new image, our de facto default
         // image.
       } else {
-        generateImage();
+        generateImage().catch(console.error);
       }
     };
   }, [worker]);
@@ -155,8 +162,12 @@ function App() {
           <Typography sx={{ color: "primary.dark" }} fontSize="0.8rem">
             generic image settings. spacing can also be negative.
           </Typography>
-          <Grid container spacing={2} columns={10}  sx={{ "& .MuiGrid-item": { paddingTop: "0.5rem" } }}
->
+          <Grid
+            container
+            spacing={2}
+            columns={10}
+            sx={{ "& .MuiGrid-item": { paddingTop: "0.5rem" } }}
+          >
             <Grid item xs={10} sm={5} md={2}>
               <NumberInput
                 label="width"
@@ -205,10 +216,9 @@ function App() {
           }}
         >
           <Typography sx={{ color: "primary.dark" }} fontSize="0.8rem">
-            list of ferrises. the same ferris can be added multiple times.
-            left click on an item to remove it from the list. focused items can
-            also be moved with the arrow keys and removed by pressing the delete
-            key.
+            list of ferrises. the same ferris can be added multiple times. left
+            click on an item to remove it from the list. focused items can also
+            be moved with the arrow keys and removed by pressing the delete key.
           </Typography>
           <Selector
             label="add a ferris"
@@ -232,8 +242,7 @@ function App() {
           }}
         >
           <Typography sx={{ color: "primary.dark" }} fontSize="0.8rem">
-            separators between ferrises. checkboxes can be toggled with
-            enter.
+            separators between ferrises. checkboxes can be toggled with enter.
           </Typography>
           <StyledCheckbox
             label="separators"
@@ -241,12 +250,18 @@ function App() {
             setValue={setUseSeparators}
           />
           {useSeparators && (
-            <Grid container spacing={2} columns={6}  sx={{ "& .MuiGrid-item": { paddingTop: "0.5rem" } }}>
+            <Grid
+              container
+              spacing={2}
+              columns={6}
+              sx={{ "& .MuiGrid-item": { paddingTop: "0.5rem" } }}
+            >
               <Grid item xs={6} sm={3} md={2}>
-                <StyledCheckbox
-                  label="crosses as separators"
-                  value={useCrosses}
-                  setValue={setUseCrosses}
+                <Select
+                  label="separator type"
+                  value={separatorType}
+                  setValue={setSeparatorType}
+                  options={Object.values(SeparatorType)}
                 />
               </Grid>
               <Grid item xs={6} sm={3} md={2}>
@@ -279,8 +294,8 @@ function App() {
           }}
         >
           <Typography sx={{ color: "primary.dark" }} fontSize="0.8rem">
-            drop shadows below ferrises. checkboxes can be toggled with
-            enter. opacity must be between 0 and 1.
+            drop shadows below ferrises. checkboxes can be toggled with enter.
+            opacity must be between 0 and 1.
           </Typography>
           <StyledCheckbox
             label="shadows"
@@ -288,7 +303,12 @@ function App() {
             setValue={setUseShadows}
           />
           {useShadows && (
-            <Grid container spacing={2} columns={8}  sx={{ "& .MuiGrid-item": { paddingTop: "0.5rem" } }}>
+            <Grid
+              container
+              spacing={2}
+              columns={8}
+              sx={{ "& .MuiGrid-item": { paddingTop: "0.5rem" } }}
+            >
               <Grid item xs={8} sm={4} md={2}>
                 <NumberInput
                   label="shadow offset"
@@ -346,8 +366,8 @@ function App() {
           color: "text.disabled",
         }}
       >
-        This website is made with TypeScript and React. You can check out the
-        source code on{" "}
+        This frontend is made with TypeScript and React and the image generation
+        is done in Rust. You can check out the source code on{" "}
         <StyledLink
           text="GitHub"
           href="https://github.com/vE5li/vE5li.github.io"

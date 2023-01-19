@@ -1,6 +1,6 @@
 .PHONY: clean core frontend start format
 
-all: clean core frontend
+all: clean format core frontend
 
 clean:
 	rm -rf docs
@@ -24,5 +24,7 @@ start:
 	npm start
 
 format:
+	cd core/ ;\
+	cargo fmt --all
 	cd frontend/ ;\
 	npx prettier -w .

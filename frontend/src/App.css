@@ -3,7 +3,7 @@
 }
 
 .MuiSvgIcon-root {
-  color: #f5dd64;
+  color: #f5dd64 !important;
 }
 
 ::-moz-selection {
