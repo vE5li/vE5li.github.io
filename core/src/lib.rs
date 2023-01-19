@@ -12,55 +12,6 @@ extern "C" {
 }
 
 #[wasm_bindgen]
-#[derive(Copy, Clone, Debug, PartialEq, Eq)]
-pub enum SeparatorType {
-    Point = "point",
-    Diamond = "diamond",
-    Cross = "cross",
-    Rust = "rust",
-}
-
-impl SeparatorType {
-    pub fn instantiate(&self, x_offset: f32, y_offset: f32, radius: f32, color: &str) -> String {
-        // Rust logo SVG as Base64 encoded data URL.
-        const RUST_LOGO: &str = unsafe { std::str::from_utf8_unchecked(include_bytes!("rust_logo.url")) };
-
-        match self {
-
-            SeparatorType::Point =>
-                format_xml::format!(
-                    <circle cx={x_offset} cy={y_offset} r={radius} fill={color}/>
-                ),
-
-            SeparatorType::Diamond => {
-                let radius = radius / 2.0f32.sqrt();
-                let transform = format!("translate({}, {}) rotate(45)", x_offset, y_offset);
-
-                format_xml::format!(
-                    <rect x={-radius} y={-radius} transform={transform} width={radius * 2.0} height={radius * 2.0} fill={color}/>
-                )
-            }
-
-            SeparatorType::Cross =>
-                [45, -45].into_iter().map(|rotation| {
-                    let transform = format!("translate({}, {}) rotate({})", x_offset, y_offset, rotation);
-
-                    format_xml::format!(
-                        <rect x={-radius} y={-radius / 6.0} transform={transform} width={radius * 2.0} height={radius / 3.0} ry={radius / 6.0} rx={radius / 6.0} fill={color}/>
-                    )
-                }).collect(),
-
-            SeparatorType::Rust =>
-                format_xml::format!(
-                    <image x={x_offset - radius} y={y_offset - radius} width={radius * 2.0} height={radius * 2.0} filter="url(#separator)" href={RUST_LOGO}/>
-                ),
-
-            _ => unreachable!(),
-        }
-    }
-}
-
-#[wasm_bindgen]
 pub fn generate(
     width: f32,
     height: f32,
@@ -69,7 +20,7 @@ pub fn generate(
     background_color: &str,
     ferrises: JsValue,
     use_separators: bool,
-    separator_type: JsValue, // SeparatorType
+    separator_type: &str,
     separator_radius: f32,
     separator_color: &str,
     use_shadows: bool,
@@ -79,9 +30,6 @@ pub fn generate(
     shadow_color: &str,
 ) -> Vec<u8> {
     // Step 1: Generate the SVG file we want to render.
-
-    // Temporary step until wasm-bindgen exports string enums.
-    let separator_type = SeparatorType::from_js_value(&separator_type).unwrap();
 
     // Create string to hold the contents of our generated SVG file.
     let mut svg_data = String::new();
@@ -104,7 +52,7 @@ pub fn generate(
     }
 
     // Color mapping filter for Rust separator.
-    if separator_type == SeparatorType::Rust {
+    if use_separators {
         let color_values = hex_color::HexColor::parse_rgb(separator_color).unwrap();
 
         svg_data.push_str(&format_xml::format!(
@@ -140,12 +88,14 @@ pub fn generate(
         // separators first and always separate the *next* Ferris instead of the
         // pervious one, the Ferrises will always be on top.
         if use_separators && index + 1 < ferris_count {
-            let separator_data = separator_type.instantiate(
-                x_offset + ferris_size + spacing / 2.0,
-                height / 2.0,
-                separator_radius,
-                separator_color,
+            let x_offset = x_offset + ferris_size + spacing / 2.0 - separator_radius;
+            let y_offset = height / 2.0 - separator_radius;
+            let radius = separator_radius;
+
+            let separator_data = format_xml::format!(
+                <image x={x_offset} y={y_offset} width={radius * 2.0} height={radius * 2.0} filter="url(#separator)" href={separator_type}/>
             );
+
             svg_data.push_str(&separator_data);
         }
 
@@ -155,14 +105,11 @@ pub fn generate(
             continue;
         };
 
-        // Convert Base64 encoded string to a data URL.
-        let data_url = format!("data:image/svg+xml;base64,{}", ferris_data);
-
         // Add the Ferris with the correct position and scale.
         svg_data.push_str(&format_xml::format!(
             match use_shadows {
-                true => <image x={x_offset} y={y_offset} width={ferris_size} height={ferris_size} filter="url(#shadow)" href={data_url}/>,
-                false => <image x={x_offset} y={y_offset} width={ferris_size} height={ferris_size} href={data_url}/>
+                true => <image x={x_offset} y={y_offset} width={ferris_size} height={ferris_size} filter="url(#shadow)" href={ferris_data}/>,
+                false => <image x={x_offset} y={y_offset} width={ferris_size} height={ferris_size} href={ferris_data}/>
             }
         ));
 

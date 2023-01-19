@@ -2,13 +2,12 @@ import FormControl from "@mui/material/FormControl";
 import InputLabel from "@mui/material/InputLabel";
 import MenuItem from "@mui/material/MenuItem";
 import Select from "@mui/material/Select";
-import { SeparatorType } from "../worker/generate";
 
 type Props = {
   label: string;
-  value: SeparatorType;
-  setValue: (value: SeparatorType) => void;
-  options: SeparatorType[];
+  value: string;
+  setValue: (value: string) => void;
+  options: string[];
 };
 
 // Material UI Select with label.
@@ -25,7 +24,7 @@ function Selector({ label, value, setValue, options }: Props) {
         label="separator"
         variant="standard"
         size="small"
-        onChange={(event) => setValue(event.target.value as SeparatorType)}
+        onChange={(event) => setValue(event.target.value)}
       >
         {options.map((option) => (
           <MenuItem key={option} value={option}>

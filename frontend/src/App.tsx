@@ -12,17 +12,14 @@ import DraggableList from "./components/DraggableList";
 import Selector from "./components/Selector";
 import Select from "./components/Select";
 import { Item, newItem } from "./components/DraggableListItem";
-import {
-  ImageParameters,
-  SeparatorType,
-  WorkerMessage,
-} from "./worker/generate";
+import { ImageParameters, WorkerMessage } from "./worker/generate";
 import theme from "./theme";
 import "./App.css";
 
 function App() {
-  // List of all available Ferris SVG files in https://github.com/vE5li/ferrises.
+  // Lists of all available Ferris and separator SVG files.
   const [availableFerrises, setAvailableFerrises] = useState<string[]>([]);
+  const [availableSeparators, setAvailableSeparators] = useState<string[]>([]);
 
   // URL to the final image generated using Rust.
   const [imageUrl, setImageUrl] = useState<string | undefined>();
@@ -38,9 +35,7 @@ function App() {
     newItem("tophat"),
   ]);
   const [useSeparators, setUseSeparators] = useState<boolean>(false);
-  const [separatorType, setSeparatorType] = useState<SeparatorType>(
-    SeparatorType.Point
-  );
+  const [separatorType, setSeparatorType] = useState<string>("circle");
   const [separatorRadius, setSeparatorRadius] = useState<number>(20);
   const [separatorColor, setSeparatorColor] = useState<string>("#444444");
   const [useShadows, setUseShadows] = useState<boolean>(false);
@@ -83,12 +78,23 @@ function App() {
     worker.postMessage(parameters);
   };
 
-  // Get a list of all available Ferrises. This code will only run once.
+  // Given a list of files, find SVG files in a given directory.
+  const filterSvgFiles = (files: string[], directory: string) =>
+    files
+      .filter((file) => file.startsWith(directory))
+      .map((file) => file.slice(directory.length, -4));
+
+  // Get a list of all available Ferrises and separators. This code will only run once.
   useEffect(() => {
-    fetch("https://api.github.com/repos/vE5li/ferrises/git/trees/master")
+    fetch(
+      "https://api.github.com/repos/vE5li/vE5li.github.io/git/trees/master?recursive=true"
+    )
       .then((response) => response.json())
-      .then((data) => data.tree.map((item: any) => item.path.slice(0, -4)))
-      .then((ferrises) => setAvailableFerrises(ferrises));
+      .then((data) => data.tree.map((item: any) => item.path))
+      .then((files: string[]) => {
+        setAvailableFerrises(filterSvgFiles(files, "ferrises/"));
+        setAvailableSeparators(filterSvgFiles(files, "separators/"));
+      });
   }, []);
 
   // This will re-generate the image any time one of the variables below change.
@@ -261,7 +267,7 @@ function App() {
                   label="separator type"
                   value={separatorType}
                   setValue={setSeparatorType}
-                  options={Object.values(SeparatorType)}
+                  options={availableSeparators}
                 />
               </Grid>
               <Grid item xs={6} sm={3} md={2}>
