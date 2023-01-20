@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import CssBaseline from "@mui/material/CssBaseline";
 import Box from "@mui/material/Box";
 import Grid from "@mui/material/Grid";
@@ -14,6 +14,7 @@ import Selector from "./components/Selector";
 import Select from "./components/Select";
 import { Item, newItem } from "./components/DraggableListItem";
 import { ImageParameters, WorkerMessage } from "./worker/generate";
+import { Buffer } from "buffer";
 import theme from "./theme";
 import "./App.css";
 
@@ -125,7 +126,10 @@ function App() {
         ".svg"
     )
       .then((response) => response.text())
-      .then((data) => "data:image/svg+xml;base64," + btoa(data));
+      .then(
+        (data) =>
+          "data:image/svg+xml;base64," + Buffer.from(data).toString("base64")
+      );
   };
 
   // Fetch the SVG data for a Ferris given the name.
