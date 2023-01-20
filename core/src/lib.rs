@@ -18,9 +18,9 @@ pub fn generate(
     ferris_size: f32,
     spacing: f32,
     background_color: &str,
-    ferrises: JsValue,
+    ferris_data: JsValue,
     use_separators: bool,
-    separator_type: &str,
+    separator_data: &str,
     separator_radius: f32,
     separator_color: &str,
     use_shadows: bool,
@@ -35,7 +35,7 @@ pub fn generate(
     let mut svg_data = String::new();
 
     // Open SVG tag.
-    let view_box = format!("0 0 {} {}", width, height);
+    let view_box = format!("0 0 {width} {height}");
     svg_data.push_str(&format_xml::format!(
         <svg viewBox={view_box} xmlns="http://www.w3.org/2000/svg">
     ));
@@ -74,8 +74,8 @@ pub fn generate(
     ));
 
     // Calculate the horizontal center and empty space on the left of the image.
-    let ferrises: Array = ferrises.into();
-    let ferris_count = ferrises.length() as usize;
+    let ferris_data: Array = ferris_data.into();
+    let ferris_count = ferris_data.length() as usize;
     let total_width = ferris_count as f32 * ferris_size + ferris_count.saturating_sub(1) as f32 * spacing;
 
     // Variable to accumulate the horizontal offset.
@@ -83,7 +83,7 @@ pub fn generate(
     let y_offset = (height - ferris_size) / 2.0;
 
     // Add all the configured Ferrises to the SVG data string.
-    for (index, ferris) in ferrises.iter().enumerate() {
+    for (index, ferris) in ferris_data.iter().enumerate() {
         // Add the separators for all but the first Ferris. Since we always draw the
         // separators first and always separate the *next* Ferris instead of the
         // pervious one, the Ferrises will always be on top.
@@ -92,11 +92,9 @@ pub fn generate(
             let y_offset = height / 2.0 - separator_radius;
             let radius = separator_radius;
 
-            let separator_data = format_xml::format!(
-                <image x={x_offset} y={y_offset} width={radius * 2.0} height={radius * 2.0} filter="url(#separator)" href={separator_type}/>
-            );
-
-            svg_data.push_str(&separator_data);
+            svg_data.push_str(&format_xml::format!(
+                <image x={x_offset} y={y_offset} width={radius * 2.0} height={radius * 2.0} filter="url(#separator)" href={separator_data}/>
+            ));
         }
 
         // Try to get a UTF-8 string from the JsValue.

@@ -3,6 +3,7 @@ import CssBaseline from "@mui/material/CssBaseline";
 import Box from "@mui/material/Box";
 import Grid from "@mui/material/Grid";
 import Typography from "@mui/material/Typography";
+import CircularProgress from "@mui/material/CircularProgress";
 import { ThemeProvider } from "@mui/material/styles";
 import NumberInput from "./components/NumberInput";
 import ColorInput from "./components/ColorInput";
@@ -16,6 +17,17 @@ import { ImageParameters, WorkerMessage } from "./worker/generate";
 import theme from "./theme";
 import "./App.css";
 
+// Since the image generation is very computationally expensive, we utilize a worker thread to
+// do the heavy lifting. If we were to call the 'generate' function in the main thread, the UI would
+// hang for up to multiple seconds every time the parameters are adjusted.
+let worker: Worker = new Worker(
+  new URL("./worker/generate.ts", import.meta.url)
+);
+
+// This will cache the SVG data that is fetched so we don't do duplicate work.
+let ferrisCache: Record<string, string> = {};
+let separatorCache: Record<string, string> = {};
+
 function App() {
   // Lists of all available Ferris and separator SVG files.
   const [availableFerrises, setAvailableFerrises] = useState<string[]>([]);
@@ -23,6 +35,7 @@ function App() {
 
   // URL to the final image generated using Rust.
   const [imageUrl, setImageUrl] = useState<string | undefined>();
+  const [loading, setLoading] = useState<boolean>(true);
 
   // Image parameters.
   const [width, setWidth] = useState<number>(1920);
@@ -44,40 +57,6 @@ function App() {
   const [shadowOpacity, setShadowOpacity] = useState<number>(0.8);
   const [shadowColor, setShadowColor] = useState<string>("#000000");
 
-  // Since the image generation is very computationally expensive, we utilize a worker thread to
-  // do the heavy lifting. If we were to call the 'generate' function in the main thread, the UI would
-  // hang for up to multiple seconds every time the parameters are adjusted.
-  const worker: Worker = useMemo(
-    () => new Worker(new URL("./worker/generate.ts", import.meta.url)),
-    []
-  );
-
-  // Create image parameters from the state and send a message to the worker thread with
-  // our input parameters.
-  const generateImage = async () => {
-    // TypeScript cannot infer the type of our message, so we annotate it manually
-    // to make sure all image parameters are set correctly.
-    const parameters: ImageParameters = {
-      width,
-      height,
-      ferrisSize,
-      spacing,
-      backgroundColor,
-      ferrises: ferrises.map((item) => item.name),
-      useSeparators,
-      separatorType,
-      separatorRadius,
-      separatorColor,
-      useShadows,
-      shadowOffset,
-      shadowSpread,
-      shadowOpacity,
-      shadowColor,
-    };
-
-    worker.postMessage(parameters);
-  };
-
   // Given a list of files, find SVG files in a given directory.
   const filterSvgFiles = (files: string[], directory: string) =>
     files
@@ -97,9 +76,29 @@ function App() {
       });
   }, []);
 
+  // This callback handles messages from the worker thread.
+  const workerCallback = (event: MessageEvent<WorkerMessage>) => {
+    const { data } = event;
+
+    // The worker has generated our image, so we set the image URL to our new image.
+    // By doing so we update the preview at the bottom of the page and also change the
+    // file that will be downloaded when clicking the download link.
+    if (data.imageUrl) {
+      setImageUrl(data.imageUrl);
+      setLoading(false);
+
+      // A message without data means that the worker is done initializing and we can generate our image.
+    } else {
+      setLoading(true);
+      generateImage().catch(console.error);
+    }
+  };
+
   // This will re-generate the image any time one of the variables below change.
   useEffect(() => {
-    generateImage().catch(console.error);
+    worker.terminate();
+    worker = new Worker(new URL("./worker/generate.ts", import.meta.url));
+    worker.onmessage = workerCallback;
   }, [
     width,
     height,
@@ -118,27 +117,85 @@ function App() {
     shadowColor,
   ]);
 
-  // This callback handles messages from the worker thread.
-  useEffect(() => {
-    worker.onmessage = (event: MessageEvent<WorkerMessage>) => {
-      const { data } = event;
+  // Fetch SVG data as Base64 from GitHub given the name of the file.
+  const fetchSvg = async (file: string) => {
+    return await fetch(
+      "https://raw.githubusercontent.com/vE5li/vE5li.github.io/master/" +
+        file +
+        ".svg"
+    )
+      .then((response) => response.text())
+      .then((data) => "data:image/svg+xml;base64," + btoa(data));
+  };
 
-      // The worker has generated a new image, so we set the image URL to our new image.
-      // By doing so we update the preview at the bottom of the page and also change the
-      // file that will be downloaded when clicking the download link.
-      if (data.imageUrl) {
-        setImageUrl(data.imageUrl);
+  // Fetch the SVG data for a Ferris given the name.
+  const fetchFerris = async (ferris: string) => {
+    const ferrisData = await fetchSvg("ferrises/" + ferris);
+    ferrisCache[ferris] = ferrisData;
+    return ferrisData;
+  };
 
-        // A message without data means that the worker is done initializing. This will only
-        // happen once, specifically when the website first loads. It is designed that way
-        // because otherwise the user won't see an image until they change a parameter. On
-        // receiving this empty message we instantly request a new image, our de facto default
-        // image.
-      } else {
-        generateImage().catch(console.error);
+  // Fetch the SVG data for a separator given the name.
+  const fetchSeparator = async (separator: string) => {
+    const separatorData = await fetchSvg("separators/" + separator);
+    separatorCache[separator] = separatorData;
+    return separatorData;
+  };
+
+  // Produces an array of strings containing the data for every selected Ferris.
+  // The SVG data for each Ferris will either be read from the cache or fetched from GitHub.
+  const getFerrisData = async (ferrises: string[]) => {
+    return Promise.all(
+      ferrises.map(async (ferris) =>
+        ferrisCache[ferris]
+          ? Promise.resolve(ferrisCache[ferris])
+          : fetchFerris(ferris)
+      )
+    );
+  };
+
+  // The SVG data for the separator will either be read from the cache or fetched from GitHub.
+  const getSeparatorData = async (separator: string) => {
+    return separatorCache[separator]
+      ? Promise.resolve(separatorCache[separator])
+      : fetchSeparator(separator);
+  };
+
+  // Create image parameters from the state and send a message to the worker thread with
+  // our input parameters.
+  const generateImage = async () => {
+    // Fetch all the SVG data needed for the image.
+    const ferrisesPromise = getFerrisData(ferrises.map((item) => item.name));
+    const separatorPromise = useSeparators
+      ? getSeparatorData(separatorType)
+      : Promise.resolve("");
+
+    Promise.all([ferrisesPromise, separatorPromise]).then(
+      ([ferrisData, separatorData]) => {
+        // TypeScript cannot infer the type of our message, so we annotate it manually
+        // to make sure all image parameters are set correctly.
+        const parameters: ImageParameters = {
+          width,
+          height,
+          ferrisSize,
+          spacing,
+          backgroundColor,
+          ferrisData,
+          useSeparators,
+          separatorData,
+          separatorRadius,
+          separatorColor,
+          useShadows,
+          shadowOffset,
+          shadowSpread,
+          shadowOpacity,
+          shadowColor,
+        };
+
+        worker.postMessage(parameters);
       }
-    };
-  }, [worker]);
+    );
+  };
 
   // Entire website body.
   return (
@@ -347,20 +404,31 @@ function App() {
             </Grid>
           )}
         </Box>
-        {/* Image preview and download */}
+        {/* Image preview and spinner */}
+        <Box sx={{ position: "relative", minHeight: "3rem" }}>
+          <CircularProgress
+            size="2rem"
+            sx={{
+              position: "absolute",
+              zIndex: "1",
+              top: "1rem",
+              left: "1rem",
+              visibility: loading ? "visible" : "hidden",
+            }}
+          />
+          {imageUrl !== undefined && <img src={imageUrl} width="100%" />}
+        </Box>
+        {/* Download link */}
         {imageUrl !== undefined && (
-          <>
-            <img src={imageUrl} width="100%" />
-            <StyledLink
-              text="> download image"
-              download={"wallpaper.png"}
-              href={imageUrl}
-              fontSize="1.2rem"
-              trigger={
-                "https://api.countapi.xyz/hit/oxidize-your-screen/download"
-              }
-            />
-          </>
+          <StyledLink
+            text="> download image"
+            download={"wallpaper.png"}
+            href={imageUrl}
+            fontSize="1.2rem"
+            trigger={
+              "https://api.countapi.xyz/hit/oxidize-your-screen/download"
+            }
+          />
         )}
       </Box>
       {/* Foot note */}
