@@ -18,6 +18,10 @@ frontend:
 	cd frontend/ ;\
 	npm run build
 	cp -r frontend/build/ docs
+	# Workaround for webpack setting the path of the webworker to /static/js/static/js
+	cp -r docs/static/js temp
+	mkdir docs/static/js/static
+	mv temp/ docs/static/js/static/js
 	
 start:
 	cd frontend/ ;\

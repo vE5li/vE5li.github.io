@@ -68,9 +68,9 @@ init().then(() => {
     self.postMessage({ imageUrl });
   };
 
-  // Getting here means that the worker is ready to start generating images, so we send an empty
+  // Getting here means that the worker is ready to generate the image, so we send an empty
   // message to inform the main thread. On receiving this message, the main thread will instantly
-  // request an image with the default parameters to display as a preview.
+  // request an new image.
   self.postMessage({});
 });
 
