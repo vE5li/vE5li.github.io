@@ -444,7 +444,7 @@ function App() {
           color: "text.disabled",
         }}
       >
-        This frontend is made with TypeScript and React and the image generation
+        This website is made with TypeScript and React and the image generation
         is done in Rust. You can check out the source code on{" "}
         <StyledLink
           text="GitHub"
@@ -452,8 +452,8 @@ function App() {
           fontSize="0.8rem"
           tabIndex={-1}
         />
-        . If you would like to add a Ferris or a separator, please open a merge
-        request!
+        . If you would like to add a Ferris or a separator, feel free open a
+        merge request!
       </Typography>
     </ThemeProvider>
   );

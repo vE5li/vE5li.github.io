@@ -7,17 +7,17 @@ export default createTheme({
   },
   palette: {
     background: {
-      default: "#582e6b",
-      paper: "#3f204d",
+      default: "#2e636b",
+      paper: "#317d69",
     },
     primary: {
       main: "#f59464",
-      dark: "#1bcfcf",
+      dark: "#1bcfa5",
     },
     text: {
       primary: "#f5dd64",
-      secondary: "#f09cff",
-      disabled: "#9b6fb0",
+      secondary: "#c9ff9c",
+      disabled: "#449e97",
     },
   },
 });

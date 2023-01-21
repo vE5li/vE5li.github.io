@@ -24,7 +24,10 @@ function NumberInput({ label, defaultValue, onChange, validator }: Props) {
       variant="standard"
       onBlur={(event) => {
         const value = Number(event.target.value);
-        const isValid = !isNaN(value) && validator ? validator(value) : true;
+        let isValid = !isNaN(value);
+        if (validator) {
+          isValid = validator(value);
+        }
 
         if (isValid) {
           onChange(value);
